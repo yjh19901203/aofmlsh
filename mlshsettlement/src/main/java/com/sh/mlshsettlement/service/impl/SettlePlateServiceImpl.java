@@ -7,13 +7,8 @@ import com.sh.mlshsettlement.service.ISettlePlateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sh.mlshsettlement.service.ITradeInfoService;
 import com.sh.mlshsettlement.vo.SummaryPlateVO;
-import com.sh.mlshsettlement.vo.SummaryTradeInfoVO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;

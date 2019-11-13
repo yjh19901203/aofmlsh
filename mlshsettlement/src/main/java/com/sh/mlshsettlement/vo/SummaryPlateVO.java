@@ -41,13 +41,4 @@ public class SummaryPlateVO implements Serializable {
      */
     private String tradeInfoId;
 
-    public static void main(String[] args) {
-        try{
-            System.out.println(UUID.randomUUID().hashCode());
-            System.out.println(String.format("%015d",1111111111));
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
 }
