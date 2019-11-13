@@ -22,7 +22,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="aofmlsh" options="-parameters" />
+      <module name="aofmlsh" options="" />
       <module name="mlshapi" options="-parameters" />
       <module name="mlshcommon" options="-parameters" />
       <module name="mlshjob" options="-parameters" />

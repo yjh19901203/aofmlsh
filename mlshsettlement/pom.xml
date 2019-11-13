@@ -9,11 +9,12 @@
     </parent>
 <!--    <groupId>com.sh.mlshsettlement</groupId>-->
     <artifactId>mlshsettlement</artifactId>
-<!--    <version>${parent.version}</version>-->
+    <version>${parent.version}</version>
     <name>mlshsettlement</name>
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <java.version>1.8</java.version>
+        <project.release.version>${parent.version}</project.release.version>
     </properties>
 
     <dependencies>
@@ -33,18 +34,13 @@
 
     </dependencies>
 
+
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <!-- jdk版本 -->
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <!-- 编码方式 -->
-                    <encoding>UTF-8</encoding>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
