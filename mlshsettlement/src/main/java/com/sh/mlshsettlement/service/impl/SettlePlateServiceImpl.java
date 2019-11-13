@@ -1,7 +1,6 @@
 package com.sh.mlshsettlement.service.impl;
 
 import com.sh.mlshcommon.util.ListUtil;
-import com.sh.mlshcommon.util.ThreadPoolUtil;
 import com.sh.mlshsettlement.model.SettlePlate;
 import com.sh.mlshsettlement.mapper.SettlePlateMapper;
 import com.sh.mlshsettlement.service.ISettlePlateService;
