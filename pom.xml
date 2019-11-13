@@ -156,4 +156,19 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>repo</id>
+            <url>http://10.8.210.7:8081/nexus/content/groups/public</url>
+            <!--<url>http://140.143.58.254:8081/nexus/content/groups/public</url>-->
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>http://central.maven.org/maven2/</url>
+        </repository>
+    </repositories>
+
 </project>
