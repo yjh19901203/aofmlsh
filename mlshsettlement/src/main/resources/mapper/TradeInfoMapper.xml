@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.mlshsettlement.mapper.TradeInfoMapper">
+
+    <select id="summaryTradeInfo" resultType="com.sh.mlshsettlement.vo.SummaryTradeInfoVO">
+        SELECT max(id) maxId,merchant_id parentMchId,sub_merchant_id mchId,yb_merchant_no ybMchId,jiesuan_time summaryDay,SUM(jiesuan_amt) settleAmount,GROUP_CONCAT(id) tradeInfoId,count(id) orderNum
+        from trade_info
+        where id> #{id} and confirm=1 and `status`=1 and jiesuan_time = #{day}
+        GROUP BY merchant_id,sub_merchant_id,yb_merchant_no
+        order by id
+        limit 2000
+    </select>
+    <select id="summaryPlateTradeInfo" resultType="com.sh.mlshsettlement.vo.SummaryPlateVO">
+        SELECT plat_yb_merchant_no ybMchId,jiesuan_time summaryDay,SUM(plat_amt) settleAmount,count(id) orderNum
+        from trade_info
+        where id> #{id} and confirm=1 and `status`=1 and jiesuan_time = #{day}
+        GROUP BY plat_yb_merchant_no
+    </select>
+</mapper>

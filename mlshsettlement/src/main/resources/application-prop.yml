@@ -1,0 +1,25 @@
+server:
+  port: 10841
+spring:
+  datasource:
+    druid:
+      username: root
+      password: 1q2w3e
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://10.8.210.11:3306/sh_mlsh_life?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      initialSize: 5
+      minIdle: 5
+      maxActive: 200
+      maxWait: 60000
+  redis:
+    sentinel:
+      nodes: redis-dlock-aof-152.shanhui.me:26386,redis-dlock-aof-153.shanhui.me:26386,redis-dlock-aof-154.shanhui.me:26386
+      master: mymaster17801
+    timeout: 5000ms
+#jobcenter回调地址
+jobcenter:
+  name: mlshsettlement
+  port: 10841
+  serverHost: jobcenter.55tuan.me
+  serverPort: 8080
+  zkAddress: zk1-1.55tuan.me:2181,zk1-2.55tuan.me:2181,zk1-3.55tuan.me:2181

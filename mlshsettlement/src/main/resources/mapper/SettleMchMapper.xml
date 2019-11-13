@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.mlshsettlement.mapper.SettleMchMapper">
+
+    <insert id="batchInsertOrUpdate" parameterType="list">
+        INSERT INTO settle_mch(yb_mch_id,batch_no,main_mch_id,mch_id,summary_day,settle_amount,order_num) values
+        <foreach collection="list" item="item" separator=",">
+            <trim prefix="(" suffix=")">
+                #{item.ybMchId},#{item.batchNo},#{item.parentMchId},#{item.mchId},#{item.summaryDay},#{item.settleAmount},#{item.orderNum}
+            </trim>
+        </foreach>
+        ON DUPLICATE KEY
+        update yb_mch_id=values(yb_mch_id),batch_no=values(batch_no),main_mch_id=values(main_mch_id),mch_id=values(mch_id),summary_day=values(summary_day),settle_amount=values(settle_amount),update_time=NOW(),order_num=values(order_num)
+    </insert>
+
+    <select id="pageSelect" resultType="com.sh.mlshsettlement.model.SettleMch">
+        select id,yb_mch_id ybMchId,settle_amount settleAmount,batch_no batchNo from (
+        SELECT id,yb_mch_id,settle_amount,batch_no from settle_mch
+        where id>#{id} and summary_day = #{day} and settle_status = 1 and pay_status = 0
+
+        UNION ALL
+        SELECT id,yb_mch_id,settle_amount,batch_no from settle_mch
+        where id>#{id} and settle_status = 1 and pay_status = 3
+        )
+        order by id
+        LIMIT 2000
+    </select>
+</mapper>

@@ -1,0 +1,47 @@
+server:
+  port: 10850
+  tomcat:
+    accesslog:
+      request-attributes-enabled: true
+      directory: /data/application/mlshjob/logs/access
+      pattern: "%h %A:%p %l %u %t \"%r\" %s %b %D %{User-Agent}i"
+
+
+spring:
+  datasource:
+    druid:
+      username: root
+      password: 1q2w3e
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://118.89.231.92:3306/sh_mlsh_life?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+      initialSize: 5
+      minIdle: 5
+      maxActive: 200
+      maxWait: 60000
+  redis:
+    sentinel:
+      nodes: redis-dlock-aof.shanhui.me:27500,redis-dlock-aof.shanhui.me:27501
+      master: mymaster17500
+    timeout: 5000ms
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  config: classpath:logback-spring.xml
+
+log:
+  root:
+    level: info
+
+#jobcenter
+jobcenter:
+  name: mlshsettlement
+  port: 10841
+  serverHost: jobcenter.55tuan.me
+  serverPort: 9001
+  zkAddress: zk1-1.55tuan.me:2181,zk1-2.55tuan.me:2181,zk1-3.55tuan.me:2181
+
+ybconfig:
+  shprivatekey:
+  appkey:

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.mlshsettlement.mapper.SettlePlateMapper">
+
+    <update id="batchInsertOrUpdate">
+        INSERT INTO settle_plate(yb_mch_id,summary_day,settle_amount,order_num) values
+        <foreach collection="list" item="item" separator=",">
+            <trim prefix="(" suffix=")">
+                #{item.ybMchId},#{item.summaryDay},#{item.settleAmount},#{item.orderNum}
+            </trim>
+        </foreach>
+        ON DUPLICATE KEY
+        update yb_mch_id=values(yb_mch_id),summary_day=values(summary_day),settle_amount=values(settle_amount),update_time=NOW(),order_num=values(order_num)
+    </update>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>com.sh.aofmlsh</groupId>
+        <artifactId>aofmlsh</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+<!--    <groupId>com.sh.mlshsettlement</groupId>-->
+    <artifactId>mlshsettlement</artifactId>
+<!--    <version>${parent.version}</version>-->
+    <name>mlshsettlement</name>
+    <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.sh.aofmlsh</groupId>
+            <artifactId>mlshcommon</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yeepay.g3.yop</groupId>
+            <artifactId>yop-java-sdk</artifactId>
+            <version>3.1.2</version>
+            <classifier>jdk18</classifier>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- jdk版本 -->
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <!-- 编码方式 -->
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

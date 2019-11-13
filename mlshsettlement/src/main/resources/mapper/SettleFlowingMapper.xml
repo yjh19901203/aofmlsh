@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.mlshsettlement.mapper.SettleFlowingMapper">
+
+    <select id="pageList" resultType="com.sh.mlshsettlement.model.SettleFlowing">
+        SELECT id,settle_flowing settleFlowing,settle_mch settleMch,settle_source settleSource,settle_sign settleSign
+        from settle_flowing
+        where settle_status = 1 and id>#{id}
+        <if test="source!=null">
+            and settle_source = #{source}
+        </if>
+        <if test="sign!=null">
+            and settle_sign = #{sign}
+        </if>
+        LIMIT 2000
+    </select>
+</mapper>

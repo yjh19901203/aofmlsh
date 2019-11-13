@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/aofmlsh.iml" filepath="$PROJECT_DIR$/aofmlsh.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mlshapi/mlshapi.iml" filepath="$PROJECT_DIR$/mlshapi/mlshapi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mlshcommon/mlshcommon.iml" filepath="$PROJECT_DIR$/mlshcommon/mlshcommon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mlshjob/mlshjob.iml" filepath="$PROJECT_DIR$/mlshjob/mlshjob.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mlshsettlement/mlshsettlement.iml" filepath="$PROJECT_DIR$/mlshsettlement/mlshsettlement.iml" />
+    </modules>
+  </component>
+</project>

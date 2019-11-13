@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="mlshcommon" />
+        <module name="mlshjob" />
+        <module name="mlshapi" />
+        <module name="mlshsettlement" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="aofmlsh" target="1.8" />
+      <module name="mlshapi" target="1.8" />
+      <module name="mlshcommon" target="1.8" />
+      <module name="mlshjob" target="1.8" />
+      <module name="mlshsettlement" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="aofmlsh" options="-parameters" />
+      <module name="mlshapi" options="-parameters" />
+      <module name="mlshcommon" options="-parameters" />
+      <module name="mlshjob" options="-parameters" />
+      <module name="mlshsettlement" options="-parameters" />
+    </option>
+  </component>
+</project>
