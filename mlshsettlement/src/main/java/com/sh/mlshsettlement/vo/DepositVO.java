@@ -2,6 +2,7 @@ package com.sh.mlshsettlement.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiResponse;
 import lombok.Data;
 
 @ApiModel

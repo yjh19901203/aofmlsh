@@ -17,5 +17,9 @@ public class YbConfig {
      * appkey
      */
     private String appkey;
+    /**
+     * platecode
+     */
+    private String plateCode;
 
 }

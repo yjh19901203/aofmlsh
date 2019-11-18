@@ -158,7 +158,7 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
         LogModel lm = LogModel.newLogModel("settleMchOne").addStart(settleMch);
         TransactionStatus transaction = dataSourceTransactionManager.getTransaction(TransactionDefinition.withDefaults());
         try{
-            String flowing = settleFlowingService.insertFlowing(SettleFlowing.SettleSourceEnum.s_1.getCode(), settleMch.getId(), settleMch.getYbMchId(), settleMch.getSettleAmount());
+            String flowing = settleFlowingService.insertFlowing(SettleFlowing.SettleSourceEnum.s_1.getCode(), settleMch.getId(), settleMch.getYbMchId(), settleMch.getSettleAmount(),"");
 
             //调用易宝打款
             ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, null, settleMch.getSettleAmount());

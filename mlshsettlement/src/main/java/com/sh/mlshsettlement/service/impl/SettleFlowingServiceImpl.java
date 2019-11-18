@@ -8,6 +8,7 @@ import com.sh.mlshcommon.util.DateUtil;
 import com.sh.mlshcommon.util.IdGenerator;
 import com.sh.mlshcommon.util.ListUtil;
 import com.sh.mlshcommon.util.StringUtil;
+import com.sh.mlshcommon.util.okhttp.OkHttpUtil;
 import com.sh.mlshcommon.vo.ResultVO;
 import com.sh.mlshsettlement.annotion.SettleResultAnnotion;
 import com.sh.mlshsettlement.common.LogModel;
@@ -22,11 +23,14 @@ import com.sh.mlshsettlement.service.ISettleFlowingService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sh.mlshsettlement.yb.YbApi;
 import com.sh.mlshsettlement.yb.vo.BalanceCashQueryVO;
+import com.sh.mlshsettlement.yb.vo.UserBalanceCashQueryListVO;
+import com.sh.mlshsettlement.yb.vo.UserBalanceCashQueryVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -68,9 +72,9 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     }
 
     @Override
-    public String insertFlowing(Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount) {
+    public String insertFlowing(Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount,String notifyUrl) {
         String flowingid = IdGenerator.generatorId(settleSource + "", 15);
-        boolean save = save(new SettleFlowing(flowingid, settleSource, settleSign, settleMch, settleAmount));
+        boolean save = save(new SettleFlowing(flowingid, settleSource, settleSign, settleMch, settleAmount,notifyUrl, SettleFlowing.NotifyStatusEnum.s_1.getCode()));
         if(!save){
             throw new BusinessException("添加流水失败");
         }
@@ -96,15 +100,15 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     private void updateSettleFlowing(SettleFlowing settleFlowing) {
         TransactionStatus transaction = dataSourceTransactionManager.getTransaction(TransactionDefinition.withDefaults());
         try{
-            String flowing = settleFlowing.getSettleFlowing();
-            ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, null);
-            if(!resultVO.isSuccess()){
-                updateFlowingFail(flowing,resultVO.getMsg());
-            }else{
-                updateFlowingSuccess(flowing,resultVO.getData());
-            }
+//            String flowing = settleFlowing.getSettleFlowing();
+//            ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, null);
+//            if(!resultVO.isSuccess()){
+//                updateFlowingFail(flowing,resultVO.getMsg());
+//            }else{
+//                updateFlowingSuccess(flowing,resultVO.getData());
+//            }
             //更新对应数据
-            settleMap.get(settleFlowing.getSettleSource()).invoke(this,settleFlowing.getSettleSign(),resultVO);
+            settleMap.get(settleFlowing.getSettleSource()).invoke(this,settleFlowing.getSettleSign(),settleFlowing);
             dataSourceTransactionManager.commit(transaction);
         }catch(Exception e){
             log.error("查询打款结果异常");
@@ -145,7 +149,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
      * 商户结算结果处理
      **/
     @SettleResultAnnotion(source = 1)
-    public void mchSettleResult(Long sign,ResultVO<BalanceCashQueryVO> resultVO){
+    public void mchSettleResult(Long sign,SettleFlowing settleFlowing){
         String payAccount = "";
         String payAccountName = "";
         BigDecimal realPayAmount = BigDecimal.ZERO;
@@ -154,6 +158,13 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         Integer settleStatus = SettleMch.SettleStatusEnum.s_1.getCode();
         Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
         Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
+        String flowing = settleFlowing.getSettleFlowing();
+        ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, null);
+        if(!resultVO.isSuccess()){
+            updateFlowingFail(flowing,resultVO.getMsg());
+        }else{
+            updateFlowingSuccess(flowing,resultVO.getData());
+        }
         if(!resultVO.isSuccess()){
             payTime = new Date();
             payStatus = SettleMch.PayStatusEnum.p_2.getCode();
@@ -188,40 +199,78 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
      * 用户结算结果处理
      **/
     @SettleResultAnnotion(source = 2)
-    public void userSettleResult(Long sign,ResultVO<BalanceCashQueryVO> resultVO){
-        // TODO: 2019/11/7 通知调用方结果
-        String payAccount = "";
-        String payAccountName = "";
-        BigDecimal realPayAmount = BigDecimal.ZERO;
-        String payDesc = "";
-        Date payTime = null;
-        Integer settleStatus = SettleMch.SettleStatusEnum.s_1.getCode();
-        Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
-        Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
+    public void userSettleResult(Long sign,SettleFlowing settleFlowing){
+
+        String flowing = settleFlowing.getSettleFlowing();
+        ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
         if(!resultVO.isSuccess()){
-            payTime = new Date();
-            payStatus = SettleMch.PayStatusEnum.p_2.getCode();
-            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
-            payDesc = resultVO.getMsg();
+            updateFlowingFail(flowing,resultVO.getMsg());
         }else{
-            BalanceCashQueryVO balanceCashQueryVO = resultVO.getData();
-            payStatus = BalanceCashQueryVO.getSettleStatus(balanceCashQueryVO.getTransferStatusCode(), balanceCashQueryVO.getBankTrxStatusCode());
-            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
-            payDesc = balanceCashQueryVO.getBankMsg();
-            if(StringUtil.isEmpty(payDesc)){
-                payDesc = SettleFlowing.FlowingSettleStatusEnum.getNameByCode(settleStatus);
-            }
-            payAccountName = balanceCashQueryVO.getBankAccountName();
-            payAccount = balanceCashQueryVO.getBankAccountNo();
-            payTime = DateUtil.parseDate(balanceCashQueryVO.getFinishTime(),DateUtil.YYYYMMDDHHSSMM);
-            realPayAmount = balanceCashQueryVO.getRealAmount();
-            if(payStatus.intValue()== SettleMch.PayStatusEnum.p_3.getCode().intValue()){
-                settleStatus = SettleMch.SettleStatusEnum.s_2.getCode();
-            }
+            updateUserFlowingSuccess(flowing,resultVO.getData());
+        }
+        //通知出款发起方
+        notifyUserSettle(settleFlowing.getNotifyUrl(),sign+"");
+
+//        UserBalanceCashQueryVO userBalanceCashQueryVO = resultVO.getData();
+//        if (userBalanceCashQueryVO.getTotalCount()==0) {
+//            log.info("未查询到打款数据结果");
+//            return;
+//        }
+//        UserBalanceCashQueryListVO userBalanceCashQueryListVO = userBalanceCashQueryVO.getList().get(0);
+//        //通知调用方结果
+//        String payAccount = "";
+//        String payAccountName = "";
+//        BigDecimal realPayAmount = BigDecimal.ZERO;
+//        String payDesc = "";
+//        Date payTime = null;
+//        Integer settleStatus = SettleMch.SettleStatusEnum.s_1.getCode();
+//        Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
+//        Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
+//        if(!resultVO.isSuccess()){
+//            payTime = new Date();
+//            payStatus = SettleMch.PayStatusEnum.p_2.getCode();
+//            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
+//            payDesc = resultVO.getMsg();
+//        }else{
+//            payStatus = BalanceCashQueryVO.getSettleStatus(userBalanceCashQueryListVO.getTransferStatusCode(), userBalanceCashQueryListVO.getBankTrxStatusCode());
+//            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
+//            payDesc = userBalanceCashQueryListVO.getBankMsg();
+//            if(StringUtil.isEmpty(payDesc)){
+//                payDesc = SettleFlowing.FlowingSettleStatusEnum.getNameByCode(settleStatus);
+//            }
+//            payAccountName = userBalanceCashQueryListVO.getAccountName();
+//            payAccount = userBalanceCashQueryListVO.getAccountNumber();
+//            payTime = DateUtil.parseDate(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM2);
+//            realPayAmount = StringUtil.isEmpty(userBalanceCashQueryListVO.getSuccessAmount())?BigDecimal.ZERO:new BigDecimal(userBalanceCashQueryListVO.getSuccessAmount());
+//            if(payStatus.intValue()== SettleMch.PayStatusEnum.p_3.getCode().intValue()){
+//                settleStatus = SettleMch.SettleStatusEnum.s_2.getCode();
+//            }
+//        }
+//        // TODO: 2019/11/13 通知打款调用方结果
+
+    }
+
+    private void updateUserFlowingSuccess(String flowing, UserBalanceCashQueryVO userBalanceCashQueryVO) {
+        if (userBalanceCashQueryVO.getTotalCount()==0) {
+            log.info("未查询到打款数据结果");
+            return;
+        }
+        UserBalanceCashQueryListVO userBalanceCashQueryListVO = userBalanceCashQueryVO.getList().get(0);
+        Integer settleStatus = BalanceCashQueryVO.getSettleStatus(userBalanceCashQueryListVO.getTransferStatusCode(), userBalanceCashQueryListVO.getBankTrxStatusCode());
+        String bankMsg = userBalanceCashQueryListVO.getBankMsg();
+        if(StringUtil.isEmpty(bankMsg)){
+            bankMsg = SettleFlowing.FlowingSettleStatusEnum.getNameByCode(settleStatus);
         }
 
-        // TODO: 2019/11/13 通知打款调用方结果
-
+        UpdateWrapper<SettleFlowing> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(SettleFlowing::getSettleFlowing,flowing)
+                .set(SettleFlowing::getSettleStatus, settleStatus)
+                .set(SettleFlowing::getSettleDesc,bankMsg)
+                .set(SettleFlowing::getSettleAccountName,userBalanceCashQueryListVO.getAccountName())
+                .set(SettleFlowing::getSettleAccountNo,userBalanceCashQueryListVO.getAccountNumber())
+                .set(SettleFlowing::getPayTime,DateUtil.parseDate(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM2))
+                .set(SettleFlowing::getRealPayAmount,userBalanceCashQueryListVO.getSuccessAmount());
+        update(updateWrapper);
     }
 
     /**
@@ -244,17 +293,48 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         return settleFlowings.get(0);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public ResultVO userDeposit(Long userId, String ybMerchantNo, Long transactionId, BigDecimal amount) {
-        LogModel lm = LogModel.newLogModel("userDeposit").addStart(String.format("userId:%s,ybMerchantNo:%s,transactionId:%s,amount:%s", userId, ybMerchantNo, transactionId, amount));
-        String flowing = insertFlowing(SettleFlowing.SettleSourceEnum.s_2.getCode(), transactionId, ybMerchantNo, amount);
-        //调用易宝打款
-        ResultVO resultVO = ybApi.userDeposit(ybMerchantNo, flowing, null, amount);
+    public ResultVO userDeposit(Long requestNo, String accountName, BigDecimal amount,String accountNumber,String bankCode,Long userId,String bankBranchName,String provinceCode,String cityCode,String notifyUrl) {
+        LogModel lm = LogModel.newLogModel("userDeposit").addStart(String.format("requestNo:%s,accountName:%s,amount:%s,accountNumber:%s,bankCode:%s,userId:%s", requestNo, accountName, amount,accountNumber,bankCode,userId));
+        String flowing = insertFlowing(SettleFlowing.SettleSourceEnum.s_2.getCode(), requestNo, userId+"", amount,notifyUrl);
+        //调用易宝用户打款
+        ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
         if(!resultVO.isSuccess()){
             lm.addEnd("调用易宝用户提现接口失败："+resultVO.getMsg());
             updateFlowingFail(flowing,resultVO.getMsg());
-            return resultVO;
         }
-        return ResultVO.success();
+        return resultVO;
+    }
+
+    /**
+     * 通知用户提现结果
+     */
+    public void notifyUserSettle(String url,String merchOrderNo){
+        LambdaQueryWrapper<SettleFlowing> eq = new QueryWrapper<SettleFlowing>().lambda().eq(SettleFlowing::getSettleSign, merchOrderNo)
+                .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode());
+        SettleFlowing settleFlowing = getOne(eq);
+        String serviceStatus = "REMITTANCE_SUCCESS";
+        String serviceMsg = "";
+        if(settleFlowing==null){
+            serviceStatus = "REMITTANCE_FAIL";
+            serviceMsg = "未查询到发起数据";
+        }
+        if(Objects.equals(settleFlowing.getSettleStatus(), SettleFlowing.FlowingSettleStatusEnum.s_1.getCode())){
+            return;
+        }
+        serviceStatus = SettleFlowing.MlSettleStatusEnum.getMlCodeByCode(settleFlowing.getSettleStatus());
+        serviceMsg = settleFlowing.getSettleDesc();
+        Map<String,String> map = new HashMap<String,String>();
+        map.put("merchOrderNo",merchOrderNo);
+        map.put("serviceStatus",serviceStatus);
+        map.put("serviceMsg",serviceMsg);
+        String response = OkHttpUtil.postFormParams(url, map);
+        if(!StringUtil.isEmpty(response) && Objects.equals(response,"SUCCESS")){
+            settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_2.getCode());
+        }else{
+            settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
+        }
+        updateById(settleFlowing);
     }
 }

@@ -15,6 +15,7 @@ public class DateUtil {
 
     public static final String COMPACT_DATE_TIME2 = "yyyyMMddHHmmssSSS";
     public static final String YYYYMMDDHHSSMM = "yyyy-MM-dd HH:mm:ss";
+    public static final String YYYYMMDDHHSSMM2 = "yyyy/MM/dd HH:mm:ss";
     public static final String YYYYMMDD = "yyyy-MM-dd";
     public static final String YYYYMMDD2 = "yyyyMMdd";
 

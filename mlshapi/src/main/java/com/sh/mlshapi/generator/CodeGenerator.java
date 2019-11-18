@@ -20,7 +20,7 @@ public class CodeGenerator {
 
         PackageConfig packageConfig = new PackageConfig();
         packageConfig.setParent("com.sh.mlshsettlement");
-        packageConfig.setController("controller");
+//        packageConfig.setController("controller");
         packageConfig.setEntity("model");
         packageConfig.setMapper("mapper");
         packageConfig.setService("service");
@@ -36,7 +36,7 @@ public class CodeGenerator {
 
         StrategyConfig strategy = new StrategyConfig();
         strategy.setEntityLombokModel(true);
-        strategy.setInclude(new String[]{"trade_info"});
+        strategy.setInclude(new String[]{"settle_req_log"});
         strategy.setNaming(NamingStrategy.underline_to_camel);
         strategy.setEntityTableFieldAnnotationEnable(true);
 

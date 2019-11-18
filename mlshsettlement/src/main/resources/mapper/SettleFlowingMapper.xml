@@ -3,7 +3,7 @@
 <mapper namespace="com.sh.mlshsettlement.mapper.SettleFlowingMapper">
 
     <select id="pageList" resultType="com.sh.mlshsettlement.model.SettleFlowing">
-        SELECT id,settle_flowing settleFlowing,settle_mch settleMch,settle_source settleSource,settle_sign settleSign
+        SELECT id,settle_flowing settleFlowing,settle_mch settleMch,settle_source settleSource,settle_sign settleSign,notify_url notifyUrl
         from settle_flowing
         where settle_status = 1 and id>#{id}
         <if test="source!=null">

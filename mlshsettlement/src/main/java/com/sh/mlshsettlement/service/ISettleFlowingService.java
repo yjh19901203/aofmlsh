@@ -16,7 +16,7 @@ import java.util.List;
  * @since 2019-11-05
  */
 public interface ISettleFlowingService extends IService<SettleFlowing> {
-    String insertFlowing(Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount);
+    String insertFlowing(Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount,String notifyUrl);
 
     void queryFlowingResultAll(Integer source,Long sign);
 
@@ -24,5 +24,5 @@ public interface ISettleFlowingService extends IService<SettleFlowing> {
 
     SettleFlowing queryFlowingResult(Integer settleSource,Long settleSign);
 
-    ResultVO userDeposit(Long userId, String ybMerchantNo, Long transactionId, BigDecimal amount);
+    ResultVO userDeposit(Long requestNo, String accountName, BigDecimal amount,String accountNumber,String bankCode,Long userId,String bankBranchName,String provinceCode,String cityCode,String notifyUrl);
 }

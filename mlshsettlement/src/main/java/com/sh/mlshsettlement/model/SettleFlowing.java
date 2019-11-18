@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+import io.swagger.models.auth.In;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -34,6 +35,26 @@ public class SettleFlowing implements Serializable {
         private String name;
 
         SettleSourceEnum(Integer code, String name) {
+            this.code = code;
+            this.name = name;
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    public enum NotifyStatusEnum{
+        s_1(1,"未通知"),s_2(2,"通知成功"),s_3(3,"通知失败");
+
+        private Integer code;
+        private String name;
+
+        NotifyStatusEnum(Integer code, String name) {
             this.code = code;
             this.name = name;
         }
@@ -76,15 +97,53 @@ public class SettleFlowing implements Serializable {
         }
     }
 
+    public enum MlSettleStatusEnum{
+        s_1(1,"","结算中"),s_2(2,"REMITTANCE_SUCCESS","结算成功"),s_3(3,"REMITTANCE_FAIL","结算失败");
+
+        ;
+        private Integer code;
+        private String mlCode;
+        private String name;
+
+        MlSettleStatusEnum(Integer code,String mlCode, String name) {
+            this.code = code;
+            this.mlCode = mlCode;
+            this.name = name;
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getMlCode() {
+            return mlCode;
+        }
+
+        public static String getMlCodeByCode(Integer code){
+            for (MlSettleStatusEnum value : MlSettleStatusEnum.values()) {
+                if(Objects.equals(code,value.code)){
+                    return value.mlCode;
+                }
+            }
+            return "";
+        }
+    }
+
     public SettleFlowing() {
     }
 
-    public SettleFlowing(String settleFlowing, Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount) {
+    public SettleFlowing(String settleFlowing, Integer settleSource, Long settleSign, String settleMch, BigDecimal settleAmount, String notifyUrl, Integer notifyStatus) {
         this.settleFlowing = settleFlowing;
         this.settleSource = settleSource;
         this.settleSign = settleSign;
         this.settleMch = settleMch;
         this.settleAmount = settleAmount;
+        this.notifyUrl = notifyUrl;
+        this.notifyStatus = notifyStatus;
     }
 
     @TableId(value = "id", type = IdType.AUTO)
@@ -148,7 +207,13 @@ public class SettleFlowing implements Serializable {
     @TableField("settle_account_name")
     private String settleAccountName;
 
+    @TableField("notify_url")
+    private String notifyUrl;
+
     @TableField("pay_time")
     private Date payTime;
+
+    @TableField("notify_status")
+    private Integer notifyStatus;
 
 }

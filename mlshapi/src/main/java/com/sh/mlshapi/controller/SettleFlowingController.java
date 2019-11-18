@@ -2,6 +2,7 @@ package com.sh.mlshapi.controller;
 
 
 import com.sh.mlshapi.controller.po.DepositPO;
+import com.sh.mlshapi.model.MlshResultVO;
 import com.sh.mlshcommon.vo.ResultVO;
 import com.sh.mlshsettlement.common.logaspect.LogAnnotion;
 import com.sh.mlshsettlement.model.SettleFlowing;
@@ -62,12 +63,12 @@ public class SettleFlowingController {
     @LogAnnotion(result = true)
     @PostMapping("/deposit")
     @ResponseBody
-    public DepositVO deposit(@Valid @RequestBody DepositPO depositPO){
-        ResultVO resultVO = settleFlowingService.userDeposit(depositPO.getUserId(), depositPO.getYbMerchantNo(), depositPO.getTransactionId(), depositPO.getAmount());
+    public MlshResultVO deposit(@Valid @RequestBody DepositPO depositPO){
+        ResultVO resultVO = settleFlowingService.userDeposit(depositPO.getTransactionId(),depositPO.getAccountName(),depositPO.getAmount(),depositPO.getAccountNumber(),depositPO.getBankCode(),depositPO.getUserId(),depositPO.getBankBranchName(),depositPO.getProvinceCode(),depositPO.getCityCode(),depositPO.getNotifyUrl());
         if(resultVO.isSuccess()){
-            return DepositVO.success();
+            return MlshResultVO.success();
         }
-        return DepositVO.error(resultVO.getMsg());
+        return MlshResultVO.error(resultVO.getMsg());
     }
 }
 

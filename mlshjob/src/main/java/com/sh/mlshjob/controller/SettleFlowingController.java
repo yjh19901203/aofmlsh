@@ -50,19 +50,5 @@ public class SettleFlowingController {
         return settleFlowing==null?ResultVO.error("未查询到结算数据"):ResultVO.success(settleFlowing.getSettleStatus(),settleFlowing.getSettleDesc(),null);
     }
 
-    /**
-     * 用户提现
-     **/
-    @ApiOperation(value = "用户提现",httpMethod = "POST")
-    @LogAnnotion(result = true)
-    @PostMapping("/deposit")
-    @ResponseBody
-    public DepositVO deposit(@Valid @RequestBody DepositPO depositPO){
-        ResultVO resultVO = settleFlowingService.userDeposit(depositPO.getUserId(), depositPO.getYbMerchantNo(), depositPO.getTransactionId(), depositPO.getAmount());
-        if(resultVO.isSuccess()){
-            return DepositVO.success();
-        }
-        return DepositVO.error(resultVO.getMsg());
-    }
 }
 
