@@ -10,6 +10,7 @@ import com.sh.mlshsettlement.service.ISettleFlowingService;
 import com.sh.mlshsettlement.vo.DepositVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -25,6 +26,7 @@ import javax.validation.Valid;
  * @author jinghui.yu
  * @since 2019-11-05
  */
+@Slf4j
 @Api(description = "结算记录")
 @Controller
 @RequestMapping("/api/v1/settleflowing")
@@ -64,11 +66,16 @@ public class SettleFlowingController {
     @PostMapping("/deposit")
     @ResponseBody
     public MlshResultVO deposit(@Valid @RequestBody DepositPO depositPO){
-        ResultVO resultVO = settleFlowingService.userDeposit(depositPO.getTransactionId(),depositPO.getAccountName(),depositPO.getAmount(),depositPO.getAccountNumber(),depositPO.getBankCode(),depositPO.getUserId(),depositPO.getBankBranchName(),depositPO.getProvinceCode(),depositPO.getCityCode(),depositPO.getNotifyUrl());
-        if(resultVO.isSuccess()){
-            return MlshResultVO.success();
+        try{
+            ResultVO resultVO = settleFlowingService.userDeposit(depositPO.getTransactionId(),depositPO.getAccountName(),depositPO.getAmount(),depositPO.getAccountNumber(),depositPO.getBankCode(),depositPO.getUserId(),depositPO.getBankBranchName(),depositPO.getProvinceCode(),depositPO.getCityCode(),depositPO.getNotifyUrl());
+            if(resultVO.isSuccess()){
+                return MlshResultVO.success();
+            }
+            return MlshResultVO.error(resultVO.getMsg());
+        }catch(Exception e){
+            log.error("达人提现异常",e);
+            return MlshResultVO.error("提现出了点意外,请稍后再试");
         }
-        return MlshResultVO.error(resultVO.getMsg());
     }
 }
 
