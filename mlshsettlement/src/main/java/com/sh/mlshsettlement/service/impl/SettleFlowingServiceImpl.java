@@ -203,9 +203,9 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
 
         String flowing = settleFlowing.getSettleFlowing();
         ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
-        if(!resultVO.isSuccess()){
+        if(resultVO.isFail()){
             updateFlowingFail(flowing,resultVO.getMsg());
-        }else{
+        }else if(resultVO.isSuccess()){
             updateUserFlowingSuccess(flowing,resultVO.getData());
         }
         //通知出款发起方

@@ -1,12 +1,15 @@
 package com.sh.mlshsettlement.yb.vo;
 
+import com.sh.mlshcommon.util.StringUtil;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class UserBalanceCashQueryListVO {
+
     /**
      *订单号
      **/

@@ -1,5 +1,7 @@
 package com.sh.mlshsettlement.yb.vo;
 
+import com.alibaba.fastjson.JSONObject;
+import com.yeepay.shade.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public class UserBalanceCashQueryVO {
     /**
      *	扩展信息
      **/
-    private String extInfos;
+    private JSONObject extInfos;
     /**
      *	页码
      **/

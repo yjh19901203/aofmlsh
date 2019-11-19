@@ -12,6 +12,7 @@ import java.io.Serializable;
 public class ResultVO<T> implements Serializable {
     private static final int success = 1;
     private static final int fail = -1;
+    private static final int processing = 0;
 
     @ApiModelProperty(value = "返回码，1：成功  -1：失败")
     private int code;
@@ -19,23 +20,11 @@ public class ResultVO<T> implements Serializable {
     private String msg;
     @ApiModelProperty(value = "返回的数据")
     private T data;
-    @ApiModelProperty(value = "业务返回码")
-    private int businessCode;
-    @ApiModelProperty(value = "业务返回信息")
-    private String businessMsg;
 
     public ResultVO(int code, String msg, T data) {
         this.code = code;
         this.msg = msg;
         this.data = data;
-    }
-
-    public ResultVO(int code, String msg, T data, int businessCode,String businessMsg) {
-        this.code = code;
-        this.msg = msg;
-        this.businessMsg = businessMsg;
-        this.data = data;
-        this.businessCode = businessCode;
     }
 
     public static <T> ResultVO success(T data){
@@ -46,12 +35,12 @@ public class ResultVO<T> implements Serializable {
         return new ResultVO(success,"成功",null);
     }
 
-    public static <T> ResultVO success(int businessCode,String businessMsg,T data){
-        return new ResultVO(success,"成功",null,businessCode,businessMsg);
-    }
-
     public static ResultVO error(String failMsg){
         return new ResultVO(fail,failMsg,null);
+    }
+
+    public static ResultVO processing(String msg){
+        return new ResultVO(processing,msg,null);
     }
 
     public T getData() {
@@ -60,6 +49,18 @@ public class ResultVO<T> implements Serializable {
 
     public boolean isSuccess(){
         if(code == success){
+            return true;
+        }
+        return false;
+    }
+    public boolean isFail(){
+        if(code == fail){
+            return true;
+        }
+        return false;
+    }
+    public boolean isProcessing(){
+        if(code == processing){
             return true;
         }
         return false;

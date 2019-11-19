@@ -3,13 +3,13 @@ package com.sh.mlshsettlement.yb;
 import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.sh.mlshcommon.util.JSONUtil;
+import com.sh.mlshcommon.util.ListUtil;
 import com.sh.mlshcommon.util.StringUtil;
 import com.sh.mlshcommon.vo.ResultVO;
 import com.sh.mlshsettlement.common.LogModel;
 import com.sh.mlshsettlement.common.logreqaspect.LogRequestAnnotion;
-import com.sh.mlshsettlement.yb.vo.BalanceCashQueryVO;
-import com.sh.mlshsettlement.yb.vo.BalanceCashVO;
-import com.sh.mlshsettlement.yb.vo.UserBalanceCashQueryVO;
+import com.sh.mlshsettlement.yb.vo.*;
+import com.yeepay.g3.sdk.yop.client.YopClient;
 import com.yeepay.g3.sdk.yop.client.YopClient3;
 import com.yeepay.g3.sdk.yop.client.YopRequest;
 import com.yeepay.g3.sdk.yop.client.YopResponse;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -31,9 +32,14 @@ public class YbApi {
 
     private String UserBalanceCashUrl = "/rest/v1.0/balance/transfer_send";
     private String UserBalanceCashQueryUrl = "/rest/v1.0/balance/transfer_query";
+    private String UseBalanceQueryUrl = "/rest/v1.0/balance/query_customer_amount";
 
-    @Resource
+//    @Resource
     private YbConfig ybConfig;
+
+    public YbApi(YbConfig ybConfig) {
+        this.ybConfig = ybConfig;
+    }
 
     /**
      * 提现
@@ -94,16 +100,23 @@ public class YbApi {
             YopResponse yopResponse = YopClient3.postRsa(UserBalanceCashUrl, request);
             lm.addRep(yopResponse.toString());
             String state = yopResponse.getState();
-            if(!Objects.equals(state,"SUCCESS")){
-                YopError error = yopResponse.getError();
-                return ResultVO.error("易宝侧："+error.getCode()+"&&"+error.getMessage());
+            if(Objects.equals(state,"FAILURE")){
+                lm.addEnd("调用易宝代付代扣失败："+yopResponse.getError().getMessage());
+                return ResultVO.error(yopResponse.getError().getMessage());
             }
-            JSONObject jsonObject = JSONUtil.toJsonObject(yopResponse.getStringResult());
-            String tradeStatus = jsonObject.getString("tradeStatus");
-            if(!Objects.equals(tradeStatus,"REMITING")){
-                return ResultVO.error(jsonObject.getString("message"));
+            UserBalanceCashVO userBalanceCashVO = yopResponse.unmarshal(UserBalanceCashVO.class);
+            String errorCode = userBalanceCashVO.getErrorCode();
+            if(!StringUtil.isEmpty(errorCode) && !StringUtil.equals(errorCode,"BAC001")){
+                lm.addEnd("易宝用户打款状态失败："+errorCode+"_"+userBalanceCashVO.getErrorMsg());
+                return ResultVO.error(userBalanceCashVO.getErrorMsg());
             }
-            return ResultVO.success(jsonObject.getString("businessNo"));
+            //判断易宝打款状态
+            String transferStatusCode = userBalanceCashVO.getTransferStatusCode();
+            if(!YbConstant.TransferStatusEnum.isSuccess(transferStatusCode)){
+                lm.addEnd("易宝用户打款状态失败："+transferStatusCode+"_"+userBalanceCashVO.getErrorMsg());
+                return ResultVO.error(userBalanceCashVO.getErrorMsg());
+            }
+            return ResultVO.success();
         }catch(Exception e){
             lm.addException(e.getMessage());
             log.error("请求易宝用户提现异常",e);
@@ -166,16 +179,86 @@ public class YbApi {
             }
             UserBalanceCashQueryVO userBalanceCashQueryVO = yopResponse.unmarshal(UserBalanceCashQueryVO.class);
             String errorCode = userBalanceCashQueryVO.getErrorCode();
-            if(!StringUtil.isEmpty(errorCode)){
+            if(!StringUtil.isEmpty(errorCode) && !StringUtil.equals(errorCode,"BAC001")){
+                lm.addEnd("系统打款状态失败："+errorCode+"_"+userBalanceCashQueryVO.getErrorMsg());
                 return ResultVO.error(userBalanceCashQueryVO.getErrorMsg());
+            }
+            List<UserBalanceCashQueryListVO> list = userBalanceCashQueryVO.getList();
+            if(ListUtil.isNull(list)){
+                lm.addEnd("未查询到打款发起");
+                return ResultVO.error("未查询到打款发起");
+            }
+            //判断易宝打款状态
+            UserBalanceCashQueryListVO userBalanceCashQueryListVO = list.get(0);
+            String transferStatusCode = userBalanceCashQueryListVO.getTransferStatusCode();
+            if(!YbConstant.TransferStatusEnum.isSuccess(transferStatusCode)){
+                lm.addEnd("易宝打款状态失败："+transferStatusCode+"_"+userBalanceCashQueryListVO.getBankMsg());
+                return ResultVO.error(userBalanceCashQueryListVO.getBankMsg());
+            }
+            //判断银行打款状态
+            String bankTrxStatusCode = userBalanceCashQueryListVO.getBankTrxStatusCode();
+            if(!YbConstant.BankTrxStatusCodeEnum.isSuccess(bankTrxStatusCode)){
+                lm.addEnd("银行打款失败："+bankTrxStatusCode+"_"+userBalanceCashQueryListVO.getBankMsg());
+                return ResultVO.error(userBalanceCashQueryListVO.getBankMsg());
+            }
+            if(YbConstant.BankTrxStatusCodeEnum.isProcessing(bankTrxStatusCode)){
+                lm.addEnd("银行打款处理中："+bankTrxStatusCode+"_"+userBalanceCashQueryListVO.getBankMsg());
+                return ResultVO.processing("银行打款处理中");
+            }
+            if(!YbConstant.BankTrxStatusCodeEnum.isSuccess(bankTrxStatusCode)){
+                lm.addEnd("银行打款失败："+bankTrxStatusCode+"_"+userBalanceCashQueryListVO.getBankMsg());
+                return ResultVO.error(userBalanceCashQueryListVO.getBankMsg());
             }
             return ResultVO.<UserBalanceCashQueryVO>success(userBalanceCashQueryVO);
         }catch(Exception e){
             lm.addException(e.getMessage());
-            log.error("请求易宝用户提现异常",e);
-            return ResultVO.error("请求易宝用户提现异常");
+            log.error("请求易宝用户提现查询异常",e);
+            return ResultVO.error("请求易宝用户提现查询异常");
         }finally {
             log.info(lm.toJson());
         }
+    }
+
+    /**
+     * 查询可用余额
+     **/
+    public ResultVO queryUseBalance(){
+        LogModel lm = LogModel.newLogModel("queryUseBalance");
+        try{
+            YopRequest request = new YopRequest(ybConfig.getAppkey(), ybConfig.getShprivatekey());
+            lm.addReq(request.toQueryString());
+            YopResponse yopResponse = YopClient3.postRsa(UseBalanceQueryUrl, request);
+//            YopResponse yopResponse = YopClient.post(UseBalanceQueryUrl, request);
+            lm.addRep(yopResponse.toString());
+            String state = yopResponse.getState();
+            if(Objects.equals(state,"FAILURE")){
+                return ResultVO.error(yopResponse.getError().getMessage());
+            }
+            UserBalanceCashQueryVO userBalanceCashQueryVO = yopResponse.unmarshal(UserBalanceCashQueryVO.class);
+            String errorCode = userBalanceCashQueryVO.getErrorCode();
+            if(!StringUtil.isEmpty(errorCode)){
+                return ResultVO.error(userBalanceCashQueryVO.getErrorMsg());
+            }
+            return ResultVO.success(userBalanceCashQueryVO);
+        }catch(Exception e){
+            lm.addException(e.getMessage());
+            log.error("请求易宝查询可用余额异常",e);
+            return ResultVO.error("请求易宝查询可用余额异常");
+        }finally {
+            log.info(lm.toJson());
+        }
+    }
+
+    public static void main(String[] args) {
+        YbConfig ybConfig = new YbConfig();
+        ybConfig.setAppkey("OPR:10000466938");
+//        ybConfig.setPlateCode("10000466938");
+        ybConfig.setShprivatekey("MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDKLgI+64mmJdNg1TwlCPBnNH3b3qfw2TdHVc2uDd4LTyQI8nRr0heFhhdj0OZi6agqekIyzAH/XmO9PdLrTi4YXJXOfiO/dYwKA6gSktRe6FKY4C2WzX1yA4fGfqJMV7RYVoL6In50Hur6rGnavNSQZqbiDJOgy5yokJ14Mey1iMqqqWvADtKN9SqxtbyIxYD/jj/6qLWwmu88wSwSaGdO3wNFgzajsHgRJe9G9IhD0zr5d72HvJGoedq7VaPn3jhIszcPQE6oqbXAddZRGKBehA4WSCjLEl87XH33zZPrxrQlBTHVVGzfxjbB4QvYz0hlEoWh1ntxeDHTfgyhdPQpAgMBAAECggEATmxMSLW6Xe08McpkmwT9ozq0Oy4BvKW1EIGS15nfcEmRc7sAN7Z1k0BxIDGuu91gcqGbvfJuL+0gCQ7LGqTnsmFvZnp9SU3CNTw33ISBxhKdv1jtthodN7Vw3CjQsYYvmThtc7Mfk9FOWk+4e7VVSnHW98XjGbMBIE2AF1heNgeZ40ubdgzuz9+4g4pphjWncPpwcaMfsDZm3JtFyvUp0+LME0CmUqrxvONZAkpFR/PyejGHnIh3ptHzhe/VjNcuIC4PphkCNBakCBCrtohTy0YeeWfDAUTAO4tPXF/JUhlxjPuqR6rpQY/0uQdMAtTpiWHVJar7eGdK81QnuuOFRQKBgQDrklUPM0pkvGG/wREa0bgUI+ki+1/wv7O8X94/8onomJqPpkD8z4hv/Lev/wD5gDcgmgLC36u/XDuhFfVNOmw4eUWenU6pzonroEjhi91AKcRRfzDfOfWg3wPm1J9WQOn5A033tNRydCpVcX/Ot4qDbKcAwLiPNPXXMTn4LUQE/wKBgQDbtmE0KS/kSfjscWJOqwv1XbxckipkxncqIbdiSdU+DzaLd+Vuaco7TLQJRFp7S7WJW4Tz6KBX2UiA7O7ezXY9PwlgXxXiZDDtneXNAqk7DNxmTTZHrF2C7qdU98klppCFiFx9bysGY6lFWofWmg3Pu5IiPqO3iLRPTvZgQOE+1wKBgQC9SCgmfYzyIlfcjtIinY5uSGiEnjz5od9WpiVbdpOPHEdc0zZ2rH6xlPs3ZAuxbm9dN8KuOLC0ovSau50Nv7rDKdZh234gfP9fH7xP1mUhsC25Why30MdnyqpE6GVbFe+qERitx1PI30RAwWDzhZC7hystNK1XDDPZBAnTOvPjmwKBgDFuujX7IkxRnFDOPdkHQNyGp2+Ib0NXJ85x4YmapQCeeZ4tbpBF+vsWidcf6t+crA5oaeRarWC2gUqIhEHapkSnXxuwqQLTmfKMOPzEIYEoppnZu2Gq1Ss1OK60RSxUamWwxWZvUZXRbG8vLCrLZFodkIZl433SowbI9EO5tTPnAoGAJRsy1z95Q1GPkKrFtKivkxZy1k7zJXjM0VWDc7lT9fBnoeGUyt+vuq+lC5i2aiWKJK7pe8MM9QFDGlWPnly+J8jbyMfm99k5oJtCWDfF0or1pAQ4mw0kjL9TvDVXdojgYA+rxSMQ09hwsYukQ4bblrwfBUmRjLN5WibcRzIW5ZA=");
+        YbApi ybApi = new YbApi(ybConfig);
+//        ResultVO resultVO = ybApi.userDeposit("1111111112111112", "张三", BigDecimal.valueOf(0.01), "4567898", "CMBCHINA", "", "", "");
+//        System.out.println("---------------"+resultVO);
+        ResultVO<UserBalanceCashQueryVO> userBalanceCashQueryVOResultVO = ybApi.userBalanceCashQuery("1111111112111112", "1111111112111112", "WTJS");
+//        ResultVO userBalanceCashQueryVOResultVO = ybApi.queryUseBalance();
+        System.out.println("======="+userBalanceCashQueryVOResultVO);
     }
 }
