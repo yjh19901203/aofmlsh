@@ -47,7 +47,7 @@ public class SettleFlowingController {
     @ResponseBody
     public ResultVO queryFlowingResult(@RequestParam("source")Integer source,@RequestParam("flow")Long sign){
         SettleFlowing settleFlowing = settleFlowingService.queryFlowingResult(source, sign);
-        return settleFlowing==null?ResultVO.error("未查询到结算数据"):ResultVO.success(settleFlowing.getSettleStatus(),settleFlowing.getSettleDesc(),null);
+        return settleFlowing==null?ResultVO.error("未查询到结算数据"):ResultVO.success(settleFlowing);
     }
 
 }
