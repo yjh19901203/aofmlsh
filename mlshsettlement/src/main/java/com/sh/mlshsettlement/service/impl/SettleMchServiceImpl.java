@@ -92,33 +92,39 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
 
     private void updateTradeInfoId(List<SummaryTradeInfoVO> summaryTradeInfoVOS) {
         summaryTradeInfoVOS.stream().forEach(summaryTradeInfoVO -> {
-            String tradeInfoId = summaryTradeInfoVO.getTradeInfoId();
-            LambdaQueryWrapper<SettleMch> query = new QueryWrapper<SettleMch>().lambda().eq(SettleMch::getMchId, summaryTradeInfoVO.getMchId())
-                    .eq(SettleMch::getYbMchId, summaryTradeInfoVO.getYbMchId())
-                    .eq(SettleMch::getSummaryDay, summaryTradeInfoVO.getSummaryDay());
-            SettleMch settleMch = baseMapper.selectOne(query);
-            if(settleMch==null){
-                throw new BusinessException("查询商户结算信息为空："+summaryTradeInfoVO.getYbMchId() + "-" +summaryTradeInfoVO.getSummaryDay());
-            }
-            String[] idList = tradeInfoId.split(",");
-            List<Long> ids = Arrays.stream(idList).map(id -> Long.valueOf(id)).collect(Collectors.toList());
-            int skip = 0;
-            int limit = 100;
-            List<List> listid = new ArrayList<List>();
-            while (true){
-                List<Long> list = ids.stream().skip(skip).limit(limit).collect(Collectors.toList());
-                if(!ListUtil.isNull(list)){
-                    listid.add(list);
+            try{
+                String tradeInfoId = summaryTradeInfoVO.getTradeInfoId();
+                LambdaQueryWrapper<SettleMch> query = new QueryWrapper<SettleMch>().lambda().eq(SettleMch::getMchId, summaryTradeInfoVO.getMchId())
+                        .eq(SettleMch::getYbMchId, summaryTradeInfoVO.getYbMchId())
+                        .eq(SettleMch::getSummaryDay, summaryTradeInfoVO.getSummaryDay());
+                SettleMch settleMch = baseMapper.selectOne(query);
+                if(settleMch==null){
+                    throw new BusinessException("查询商户结算信息为空："+summaryTradeInfoVO.getYbMchId() + "-" +summaryTradeInfoVO.getSummaryDay());
                 }
-                if(ListUtil.isNull(list) || list.size()<limit){
-                    break;
+                String[] idList = tradeInfoId.split(",");
+                List<Long> ids = Arrays.stream(idList).map(id -> Long.valueOf(id)).collect(Collectors.toList());
+                int skip = 0;
+                int limit = 100;
+                List<List> listid = new ArrayList<List>();
+                while (true){
+                    List<Long> list = ids.stream().skip(skip).limit(limit).collect(Collectors.toList());
+                    if(!ListUtil.isNull(list)){
+                        listid.add(list);
+                    }
+                    if(ListUtil.isNull(list) || list.size()<limit){
+                        break;
+                    }
+                    skip = skip + limit;
                 }
-                skip = skip + limit;
+                listid.stream().forEach(list -> {
+                    tradeInfoService.updateSummaryTradeInfo(list,settleMch.getBatchNo(), TradeInfo.StatusEnum.s_1.getCode());
+                });
+            }catch(Exception e){
+                log.error("更新交易订单异常",e);
+                if(e instanceof BusinessException){
+                    throw e;
+                }
             }
-            listid.stream().forEach(list -> {
-                tradeInfoService.updateSummaryTradeInfo(list,settleMch.getBatchNo(), TradeInfo.StatusEnum.s_1.getCode());
-            });
-
         });
 
     }
@@ -146,7 +152,13 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
             if(ListUtil.isNull(settleMches)){
                 return;
             }
-            settleMches.stream().forEach(settleMch -> settleMchOne(settleMch));
+            settleMches.stream().forEach(settleMch -> {
+                try{
+                    settleMchOne(settleMch);
+                }catch(Exception e){
+                    log.error("商户请求提现异常:"+settleMch,e);
+                }
+            });
             if(settleMches.size()<2000){
                 return;
             }
@@ -161,7 +173,7 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
             String flowing = settleFlowingService.insertFlowing(SettleFlowing.SettleSourceEnum.s_1.getCode(), settleMch.getId(), settleMch.getYbMchId(), settleMch.getSettleAmount(),"");
 
             //调用易宝打款
-            ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, null, settleMch.getSettleAmount());
+            ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, "D1", settleMch.getSettleAmount());
             if(!resultVO.isSuccess()){
                 lm.addEnd("调用易宝接口失败："+resultVO.getMsg());
                 settleFlowingService.updateFlowingFail(flowing,resultVO.getMsg());

@@ -159,7 +159,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
         Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
         String flowing = settleFlowing.getSettleFlowing();
-        ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, null);
+        ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, "D1");
         if(!resultVO.isSuccess()){
             updateFlowingFail(flowing,resultVO.getMsg());
         }else{
