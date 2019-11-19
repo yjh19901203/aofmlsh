@@ -181,7 +181,7 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
             }
 
             if(!updateById(new SettleMch(settleMch.getId(), SettleMch.PayStatusEnum.p_1.getCode(), new Date()))){
-                log.info("更新结算单失败：{}", settleMch);
+                log.info("更新商户结算单失败：{}", settleMch);
                 dataSourceTransactionManager.rollback(transaction);
                 return;
             };
