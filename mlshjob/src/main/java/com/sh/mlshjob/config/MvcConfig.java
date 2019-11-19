@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @Configuration
-@ComponentScan({"com.sh.mlshjob","com.sh.mlshsettlement"})
+@ComponentScan({"com.sh.mlshjob","com.sh.mlshsettlement","com.tuan.job.client.controller"})
 public class MvcConfig extends WebMvcConfigurationSupport {
 
     ThreadLocal<Long> requestTime = new ThreadLocal<Long>();
