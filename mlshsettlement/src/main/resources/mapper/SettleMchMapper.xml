@@ -21,7 +21,7 @@
         UNION ALL
         SELECT id,yb_mch_id,settle_amount,batch_no from settle_mch
         where id>#{id} and settle_status = 1 and pay_status = 3
-        )
+        ) temp
         order by id
         LIMIT 2000
     </select>
