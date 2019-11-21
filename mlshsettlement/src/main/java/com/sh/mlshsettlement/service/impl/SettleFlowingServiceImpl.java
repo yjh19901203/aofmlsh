@@ -209,7 +209,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             updateUserFlowingSuccess(flowing,resultVO.getData());
         }
         //通知出款发起方
-        notifyUserSettle(settleFlowing.getNotifyUrl(),sign+"");
+        notifyUserSettle(settleFlowing.getNotifyUrl(),sign);
 
 //        UserBalanceCashQueryVO userBalanceCashQueryVO = resultVO.getData();
 //        if (userBalanceCashQueryVO.getTotalCount()==0) {
@@ -310,8 +310,9 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     /**
      * 通知用户提现结果
      */
-    public void notifyUserSettle(String url,String merchOrderNo){
-        LambdaQueryWrapper<SettleFlowing> eq = new QueryWrapper<SettleFlowing>().lambda().eq(SettleFlowing::getSettleSign, merchOrderNo)
+    public void notifyUserSettle(String url,Long merchOrderNo){
+        LambdaQueryWrapper<SettleFlowing> eq = new QueryWrapper<SettleFlowing>().lambda()
+                .eq(SettleFlowing::getSettleSign, merchOrderNo)
                 .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode());
         SettleFlowing settleFlowing = getOne(eq);
         String serviceStatus = "REMITTANCE_SUCCESS";
@@ -326,7 +327,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         serviceStatus = SettleFlowing.MlSettleStatusEnum.getMlCodeByCode(settleFlowing.getSettleStatus());
         serviceMsg = settleFlowing.getSettleDesc();
         Map<String,String> map = new HashMap<String,String>();
-        map.put("merchOrderNo",merchOrderNo);
+        map.put("merchOrderNo",merchOrderNo+"");
         map.put("serviceStatus",serviceStatus);
         map.put("serviceMsg",serviceMsg);
         String response = OkHttpUtil.postFormParams(url, map);
@@ -336,5 +337,21 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
         }
         updateById(settleFlowing);
+    }
+
+    @Override
+    public void userNotify() {
+        LambdaQueryWrapper<SettleFlowing> wrapper = new LambdaQueryWrapper<SettleFlowing>()
+                .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode())
+                .eq(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_3.getCode())
+                .ge(SettleFlowing::getCreateTime,DateUtil.addDate(new Date(),-2));
+        List<SettleFlowing> list = list(wrapper);
+        if(ListUtil.isNull(list)){
+            return;
+        }
+        list.stream().forEach(l -> {
+            log.info("通知调用方打款情况：{}",l);
+            notifyUserSettle(l.getNotifyUrl(),l.getSettleSign());
+        });
     }
 }

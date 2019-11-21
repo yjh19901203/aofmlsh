@@ -25,4 +25,9 @@ public interface ISettleFlowingService extends IService<SettleFlowing> {
     SettleFlowing queryFlowingResult(Integer settleSource,Long settleSign);
 
     ResultVO userDeposit(Long requestNo, String accountName, BigDecimal amount,String accountNumber,String bankCode,Long userId,String bankBranchName,String provinceCode,String cityCode,String notifyUrl);
+
+    /**
+     * 用户通知接口
+     */
+    void userNotify();
 }
