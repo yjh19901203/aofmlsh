@@ -33,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -355,8 +356,8 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         LambdaQueryWrapper<SettleFlowing> wrapper = new LambdaQueryWrapper<SettleFlowing>()
                 .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode())
                 .eq(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_3.getCode())
-                .ge(SettleFlowing::getCreateTime,DateUtil.addDate(new Date(),-2));
-        log.info("========="+DateUtil.addDate(new Date(),-2));
+                .ge(SettleFlowing::getCreateTime,DateUtil.minuLocalDateTime(LocalDateTime.now(),-2l));
+        log.info("========="+DateUtil.minuLocalDateTime(LocalDateTime.now(),-2l));
         List<SettleFlowing> list = list(wrapper);
         if(ListUtil.isNull(list)){
             return;

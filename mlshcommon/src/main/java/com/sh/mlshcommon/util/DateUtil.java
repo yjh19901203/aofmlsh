@@ -136,4 +136,8 @@ public class DateUtil {
     public static LocalDate minuLocalDate(LocalDate now, int i) {
         return now.minusDays(i);
     }
+
+    public static LocalDateTime minuLocalDateTime(LocalDateTime now, long i) {
+        return now.minusDays(i);
+    }
 }
