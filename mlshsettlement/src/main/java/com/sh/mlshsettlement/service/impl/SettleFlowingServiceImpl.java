@@ -356,8 +356,8 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         LambdaQueryWrapper<SettleFlowing> wrapper = new LambdaQueryWrapper<SettleFlowing>()
                 .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode())
                 .eq(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_3.getCode())
-                .ge(SettleFlowing::getCreateTime,DateUtil.minuLocalDateTime(LocalDateTime.now(),-2l));
-        log.info("========="+DateUtil.minuLocalDateTime(LocalDateTime.now(),-2l));
+                .ge(SettleFlowing::getCreateTime,DateUtil.minuLocalDateTime(LocalDateTime.now(),2l));
+        log.info("========="+DateUtil.minuLocalDateTime(LocalDateTime.now(),2l));
         List<SettleFlowing> list = list(wrapper);
         if(ListUtil.isNull(list)){
             return;
