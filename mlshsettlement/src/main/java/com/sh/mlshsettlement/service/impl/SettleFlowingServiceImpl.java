@@ -350,8 +350,12 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             return;
         }
         list.stream().forEach(l -> {
-            log.info("通知调用方打款情况：{}",l);
-            notifyUserSettle(l.getNotifyUrl(),l.getSettleSign());
+            try{
+                log.info("通知调用方打款情况：{}",l);
+                notifyUserSettle(l.getNotifyUrl(),l.getSettleSign());
+            }catch(Exception e){
+                log.error("通知调用方打款情况异常",e);
+            }
         });
     }
 }
