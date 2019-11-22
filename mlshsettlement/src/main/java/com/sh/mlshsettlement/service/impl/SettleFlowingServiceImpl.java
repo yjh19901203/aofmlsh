@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.sh.mlshcommon.util.DateUtil;
-import com.sh.mlshcommon.util.IdGenerator;
-import com.sh.mlshcommon.util.ListUtil;
-import com.sh.mlshcommon.util.StringUtil;
+import com.sh.mlshcommon.util.*;
 import com.sh.mlshcommon.util.okhttp.OkHttpUtil;
 import com.sh.mlshcommon.vo.ResultVO;
 import com.sh.mlshsettlement.annotion.SettleResultAnnotion;
@@ -315,32 +312,42 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
      * 通知用户提现结果
      */
     public void notifyUserSettle(String url,Long merchOrderNo){
-        LambdaQueryWrapper<SettleFlowing> eq = new QueryWrapper<SettleFlowing>().lambda()
-                .eq(SettleFlowing::getSettleSign, merchOrderNo)
-                .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode());
-        SettleFlowing settleFlowing = getOne(eq);
-        String serviceStatus = "REMITTANCE_SUCCESS";
-        String serviceMsg = "";
-        if(settleFlowing==null){
-            serviceStatus = "REMITTANCE_FAIL";
-            serviceMsg = "未查询到发起数据";
+        LogModel lm = LogModel.newLogModel("notifyUserSettle").addStart(String.format("url:%s,merchOrderNo:%s", url, merchOrderNo));
+        try{
+            LambdaQueryWrapper<SettleFlowing> eq = new QueryWrapper<SettleFlowing>().lambda()
+                    .eq(SettleFlowing::getSettleSign, merchOrderNo)
+                    .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode());
+            SettleFlowing settleFlowing = getOne(eq);
+            String serviceStatus = "REMITTANCE_SUCCESS";
+            String serviceMsg = "";
+            if(settleFlowing==null){
+                serviceStatus = "REMITTANCE_FAIL";
+                serviceMsg = "未查询到发起数据";
+            }
+            if(Objects.equals(settleFlowing.getSettleStatus(), SettleFlowing.FlowingSettleStatusEnum.s_1.getCode())){
+                return;
+            }
+            serviceStatus = SettleFlowing.MlSettleStatusEnum.getMlCodeByCode(settleFlowing.getSettleStatus());
+            serviceMsg = settleFlowing.getSettleDesc();
+            Map<String,String> map = new HashMap<String,String>();
+            map.put("merchOrderNo",merchOrderNo+"");
+            map.put("serviceStatus",serviceStatus);
+            map.put("serviceMsg",serviceMsg);
+            lm.addReq(url+"_____"+ JSONUtil.toString(map));
+            String response = OkHttpUtil.postFormParams(url, map);
+            lm.addRep(response);
+            if(!StringUtil.isEmpty(response) && Objects.equals(response,"SUCCESS")){
+                settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_2.getCode());
+            }else{
+                settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
+            }
+            updateById(settleFlowing);
+        }catch(Exception e){
+            lm.addException(e.getMessage());
+            log.error("调用三方接口异常：",e);
+        }finally {
+            log.info(lm.toJson());
         }
-        if(Objects.equals(settleFlowing.getSettleStatus(), SettleFlowing.FlowingSettleStatusEnum.s_1.getCode())){
-            return;
-        }
-        serviceStatus = SettleFlowing.MlSettleStatusEnum.getMlCodeByCode(settleFlowing.getSettleStatus());
-        serviceMsg = settleFlowing.getSettleDesc();
-        Map<String,String> map = new HashMap<String,String>();
-        map.put("merchOrderNo",merchOrderNo+"");
-        map.put("serviceStatus",serviceStatus);
-        map.put("serviceMsg",serviceMsg);
-        String response = OkHttpUtil.postFormParams(url, map);
-        if(!StringUtil.isEmpty(response) && Objects.equals(response,"SUCCESS")){
-            settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_2.getCode());
-        }else{
-            settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
-        }
-        updateById(settleFlowing);
     }
 
     @Override
