@@ -350,11 +350,19 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             return;
         }
         list.stream().forEach(l -> {
+            LogModel lm = LogModel.newLogModel("通知打款方").addStart(l);
             try{
-                log.info("通知调用方打款情况：{}",l);
-                notifyUserSettle(l.getNotifyUrl(),l.getSettleSign());
+                String notifyUrl = l.getNotifyUrl();
+                if(StringUtil.isEmpty(notifyUrl)){
+                    lm.addEnd("通知调用方打款回调地址为空");
+                    return;
+                }
+                notifyUserSettle(notifyUrl,l.getSettleSign());
             }catch(Exception e){
                 log.error("通知调用方打款情况异常",e);
+                lm.addException("通知调用方打款情况异常:"+e.getMessage());
+            }finally {
+                log.info(lm.toJson());
             }
         });
     }
