@@ -176,7 +176,7 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
             ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, "D1", settleMch.getSettleAmount());
             if(!resultVO.isSuccess()){
                 lm.addEnd("调用易宝接口失败："+resultVO.getMsg());
-                settleFlowingService.updateFlowingFail(flowing,resultVO.getMsg());
+                settleFlowingService.updateFlowingFail(flowing,resultVO.getMsg(),null);
                 return;
             }
 
