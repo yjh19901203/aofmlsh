@@ -356,6 +356,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
                 .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode())
                 .eq(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_3.getCode())
                 .ge(SettleFlowing::getCreateTime,DateUtil.addDate(new Date(),-2));
+        log.info("========="+DateUtil.addDate(new Date(),-2));
         List<SettleFlowing> list = list(wrapper);
         if(ListUtil.isNull(list)){
             return;
