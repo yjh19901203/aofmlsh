@@ -304,7 +304,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         resultVO = ResultVO.success();
         if(!resultVO.isSuccess()){
             lm.addEnd("调用易宝用户提现接口失败："+resultVO.getMsg());
-            updateFlowingFail(flowing,resultVO.getMsg(), SettleFlowing.NotifyStatusEnum.s_2.getCode());
+            updateFlowingFail(flowing,resultVO.getMsg(), SettleFlowing.NotifyStatusEnum.s_1.getCode());
         }
         return resultVO;
     }
@@ -355,9 +355,9 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     public void userNotify() {
         LambdaQueryWrapper<SettleFlowing> wrapper = new LambdaQueryWrapper<SettleFlowing>()
                 .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode())
-                .eq(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_3.getCode())
+                .in(SettleFlowing::getSettleStatus, SettleFlowing.FlowingSettleStatusEnum.s_2.getCode(),SettleFlowing.FlowingSettleStatusEnum.s_3.getCode())
+                .in(SettleFlowing::getNotifyStatus, SettleFlowing.NotifyStatusEnum.s_1.getCode(),SettleFlowing.NotifyStatusEnum.s_3.getCode())
                 .ge(SettleFlowing::getCreateTime,DateUtil.minuLocalDateTime(LocalDateTime.now(),2l));
-        log.info("========="+DateUtil.minuLocalDateTime(LocalDateTime.now(),2l));
         List<SettleFlowing> list = list(wrapper);
         if(ListUtil.isNull(list)){
             return;
