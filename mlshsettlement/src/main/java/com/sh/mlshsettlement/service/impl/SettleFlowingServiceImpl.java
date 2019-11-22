@@ -336,7 +336,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             lm.addReq(url+"_____"+ JSONUtil.toString(map));
             String response = OkHttpUtil.postFormParams(url, map);
             lm.addRep(response);
-            if(!StringUtil.isEmpty(response) && Objects.equals(response,"SUCCESS")){
+            if(!StringUtil.isEmpty(response) && Objects.equals(response,"success")){
                 settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_2.getCode());
             }else{
                 settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
