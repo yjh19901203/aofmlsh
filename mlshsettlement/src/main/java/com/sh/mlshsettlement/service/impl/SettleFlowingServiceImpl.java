@@ -129,7 +129,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
                 .set(SettleFlowing::getSettleDesc,bankMsg)
                 .set(SettleFlowing::getSettleAccountName,balanceCashQueryVO.getBankAccountName())
                 .set(SettleFlowing::getSettleAccountNo,balanceCashQueryVO.getBankAccountNo())
-                .set(SettleFlowing::getPayTime,DateUtil.parseDate(balanceCashQueryVO.getFinishTime(),DateUtil.YYYYMMDDHHSSMM))
+                .set(SettleFlowing::getPayTime,DateUtil.parseLocalDateTime(balanceCashQueryVO.getFinishTime(),DateUtil.YYYYMMDDHHSSMM))
                 .set(SettleFlowing::getRealPayAmount,balanceCashQueryVO.getRealAmount());
         update(updateWrapper);
     }
@@ -269,7 +269,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
                 .set(SettleFlowing::getSettleDesc,bankMsg)
                 .set(SettleFlowing::getSettleAccountName,userBalanceCashQueryListVO.getAccountName())
                 .set(SettleFlowing::getSettleAccountNo,userBalanceCashQueryListVO.getAccountNumber())
-                .set(SettleFlowing::getPayTime,DateUtil.parseDate(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM2))
+                .set(SettleFlowing::getPayTime,DateUtil.parseLocalDateTime(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM2))
                 .set(SettleFlowing::getRealPayAmount,userBalanceCashQueryListVO.getSuccessAmount());
         update(updateWrapper);
     }
@@ -342,6 +342,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             }else{
                 settleFlowing.setNotifyStatus(SettleFlowing.NotifyStatusEnum.s_3.getCode());
             }
+            settleFlowing.setNotifyTime(LocalDateTime.now());
             updateById(settleFlowing);
         }catch(Exception e){
             lm.addException(e.getMessage());

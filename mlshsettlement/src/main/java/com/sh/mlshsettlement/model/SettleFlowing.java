@@ -212,9 +212,12 @@ public class SettleFlowing implements Serializable {
     private String notifyUrl;
 
     @TableField("pay_time")
-    private Date payTime;
+    private LocalDateTime payTime;
 
     @TableField("notify_status")
     private Integer notifyStatus;
+
+    @TableField("notify_time")
+    private LocalDateTime notifyTime;
 
 }
