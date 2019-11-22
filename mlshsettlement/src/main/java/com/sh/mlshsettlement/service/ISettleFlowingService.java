@@ -20,7 +20,7 @@ public interface ISettleFlowingService extends IService<SettleFlowing> {
 
     void queryFlowingResultAll(Integer source,Long sign);
 
-    void updateFlowingFail(String flowing, String msg);
+    void updateFlowingFail(String flowing, String msg,Integer notifyStatus);
 
     SettleFlowing queryFlowingResult(Integer settleSource,Long settleSign);
 

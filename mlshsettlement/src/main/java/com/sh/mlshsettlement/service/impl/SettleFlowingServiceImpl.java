@@ -137,11 +137,14 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     }
 
     @Override
-    public void updateFlowingFail(String flowing, String msg) {
-        UpdateWrapper<SettleFlowing> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.lambda().eq(SettleFlowing::getSettleFlowing,flowing)
+    public void updateFlowingFail(String flowing, String msg,Integer notifyStatus) {
+        LambdaUpdateWrapper<SettleFlowing> updateWrapper = new LambdaUpdateWrapper<SettleFlowing>();
+        updateWrapper.eq(SettleFlowing::getSettleFlowing,flowing)
         .set(SettleFlowing::getSettleStatus, SettleFlowing.FlowingSettleStatusEnum.s_3.getCode())
         .set(SettleFlowing::getSettleDesc,msg);
+        if(notifyStatus!=null){
+            updateWrapper.set(SettleFlowing::getNotifyStatus,notifyStatus);
+        }
         update(updateWrapper);
     }
 
@@ -161,7 +164,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         String flowing = settleFlowing.getSettleFlowing();
         ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, "D1");
         if(!resultVO.isSuccess()){
-            updateFlowingFail(flowing,resultVO.getMsg());
+            updateFlowingFail(flowing,resultVO.getMsg(),null);
         }else{
             updateFlowingSuccess(flowing,resultVO.getData());
         }
@@ -204,7 +207,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         String flowing = settleFlowing.getSettleFlowing();
         ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
         if(resultVO.isFail()){
-            updateFlowingFail(flowing,resultVO.getMsg());
+            updateFlowingFail(flowing,resultVO.getMsg(),null);
         }else if(resultVO.isSuccess()){
             updateUserFlowingSuccess(flowing,resultVO.getData());
         }
@@ -302,7 +305,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
         if(!resultVO.isSuccess()){
             lm.addEnd("调用易宝用户提现接口失败："+resultVO.getMsg());
-            updateFlowingFail(flowing,resultVO.getMsg());
+            updateFlowingFail(flowing,resultVO.getMsg(), SettleFlowing.NotifyStatusEnum.s_2.getCode());
         }
         return resultVO;
     }
