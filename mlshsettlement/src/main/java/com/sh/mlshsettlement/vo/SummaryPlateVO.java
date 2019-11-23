@@ -41,4 +41,9 @@ public class SummaryPlateVO implements Serializable {
      */
     private String tradeInfoId;
 
+    /**
+     * 订单数
+     **/
+    private Integer orderNum;
+
 }
