@@ -22,4 +22,5 @@ public class ThreadPoolUtil {
         log.info("======当前总线成数：{}，活跃线程数：{}",executor.getTaskCount(),executor.getActiveCount());
         executor.execute(runnable);
     }
+
 }

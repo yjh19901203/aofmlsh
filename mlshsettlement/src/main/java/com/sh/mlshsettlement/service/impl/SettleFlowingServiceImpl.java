@@ -305,6 +305,16 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         if(!resultVO.isSuccess()){
             lm.addEnd("调用易宝用户提现接口失败："+resultVO.getMsg());
             updateFlowingFail(flowing,resultVO.getMsg(), SettleFlowing.NotifyStatusEnum.s_1.getCode());
+            ThreadPoolUtil.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        notifyUserSettle(notifyUrl,requestNo);
+                    }catch(Exception e){
+                        log.error("通知异常：",e);
+                    }
+                }
+            });
         }
         return resultVO;
     }
