@@ -150,6 +150,7 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
         while (true){
             List<SettleMch> settleMches = baseMapper.pageSelect(day, id);
             if(ListUtil.isNull(settleMches)){
+                log.info("查询商户结算数据为空");
                 return;
             }
             settleMches.stream().forEach(settleMch -> {
