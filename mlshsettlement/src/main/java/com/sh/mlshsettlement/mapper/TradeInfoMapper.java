@@ -23,5 +23,5 @@ public interface TradeInfoMapper extends BaseMapper<TradeInfo> {
 
     List<SummaryTradeInfoVO> summaryTradeInfo(@Param("day") LocalDate day,@Param("id") Long id);
 
-    List<SummaryPlateVO> summaryPlateTradeInfo(LocalDate day);
+    List<SummaryPlateVO> summaryPlateTradeInfo(@Param("day") LocalDate day);
 }
