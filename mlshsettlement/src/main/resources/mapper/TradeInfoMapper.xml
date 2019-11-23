@@ -13,7 +13,7 @@
     <select id="summaryPlateTradeInfo" resultType="com.sh.mlshsettlement.vo.SummaryPlateVO">
         SELECT plat_yb_merchant_no ybMchId,jiesuan_time summaryDay,SUM(plat_amt) settleAmount,count(id) orderNum
         from trade_info
-        where id> #{id} and confirm=1 and `status`=1 and jiesuan_time = #{day}
+        where confirm=1 and `status`=1 and jiesuan_time = #{day}
         GROUP BY plat_yb_merchant_no
     </select>
 </mapper>
