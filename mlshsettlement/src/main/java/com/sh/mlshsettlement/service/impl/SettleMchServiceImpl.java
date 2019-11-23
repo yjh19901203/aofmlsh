@@ -171,14 +171,6 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
         TransactionStatus transaction = dataSourceTransactionManager.getTransaction(TransactionDefinition.withDefaults());
         try{
             String flowing = settleFlowingService.insertFlowing(SettleFlowing.SettleSourceEnum.s_1.getCode(), settleMch.getId(), settleMch.getYbMchId(), settleMch.getSettleAmount(),"");
-
-            //调用易宝打款
-            ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, "D1", settleMch.getSettleAmount());
-            if(!resultVO.isSuccess()){
-                lm.addEnd("调用易宝接口失败："+resultVO.getMsg());
-                settleFlowingService.updateFlowingFail(flowing,resultVO.getMsg(),null);
-                return;
-            }
             //更新商户打款中
             if(!updateById(new SettleMch(settleMch.getId(), SettleMch.PayStatusEnum.p_1.getCode(), new Date()))){
                 lm.addEnd("更新商户结算单失败:"+settleMch);
@@ -187,6 +179,14 @@ public class SettleMchServiceImpl extends ServiceImpl<SettleMchMapper, SettleMch
             };
             //更新tradeinfo数据
             updateTradeInfoStatus(settleMch.getBatchNo(), TradeInfo.StatusEnum.s_2.getCode());
+            //调用易宝打款
+            ResultVO resultVO = ybApi.balanceCash(settleMch.getYbMchId(), flowing, "D1", settleMch.getSettleAmount());
+            if(!resultVO.isSuccess()){
+                lm.addEnd("调用易宝接口失败："+resultVO.getMsg());
+                settleFlowingService.updateFlowingFail(flowing,resultVO.getMsg(),null);
+                dataSourceTransactionManager.commit(transaction);
+                return;
+            }
             dataSourceTransactionManager.commit(transaction);
         }catch(Exception e){
             log.error("发起单个打款异常:"+settleMch,e);
