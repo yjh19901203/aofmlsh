@@ -298,6 +298,15 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
     @Override
     public ResultVO userDeposit(Long requestNo, String accountName, BigDecimal amount,String accountNumber,String bankCode,Long userId,String bankBranchName,String provinceCode,String cityCode,String notifyUrl) {
         LogModel lm = LogModel.newLogModel("userDeposit").addStart(String.format("requestNo:%s,accountName:%s,amount:%s,accountNumber:%s,bankCode:%s,userId:%s", requestNo, accountName, amount,accountNumber,bankCode,userId));
+        //查询提现流水是否存在
+        LambdaQueryWrapper<SettleFlowing> settleFlowingLambdaQueryWrapper = new LambdaQueryWrapper<SettleFlowing>()
+                .eq(SettleFlowing::getSettleSign,requestNo)
+                .eq(SettleFlowing::getSettleSource, SettleFlowing.SettleSourceEnum.s_2.getCode());
+        SettleFlowing settleFlowing = baseMapper.selectOne(settleFlowingLambdaQueryWrapper);
+        if(settleFlowing!=null){
+            lm.addEnd("提现流水号相同");
+            return ResultVO.error("提现流水号相同");
+        }
         String flowing = insertFlowing(SettleFlowing.SettleSourceEnum.s_2.getCode(), requestNo, userId+"", amount,notifyUrl);
         //调用易宝用户打款
         ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
