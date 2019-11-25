@@ -64,6 +64,10 @@ public class YbApi {
             if(Objects.equals(state,"FAILURE")){
                 return ResultVO.error(yopResponse.getError().getMessage());
             }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
+            }
             BalanceCashVO balanceCashVO = JSONUtil.parseObject(yopResponse.getStringResult(), BalanceCashVO.class);
             if(!StringUtil.isEmpty(balanceCashVO.getErrorCode()) && !StringUtil.equals(balanceCashVO.getErrorCode(),"BAC001")){
                 lm.addEnd("系统打款状态失败："+balanceCashVO.getErrorCode()+"_"+balanceCashVO.getErrorMsg());
@@ -109,6 +113,10 @@ public class YbApi {
                 lm.addEnd("调用易宝代付代扣失败："+yopResponse.getError().getMessage());
                 return ResultVO.error(yopResponse.getError().getMessage());
             }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
+            }
             UserBalanceCashVO userBalanceCashVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashVO.class);
             String errorCode = userBalanceCashVO.getErrorCode();
             if(!StringUtil.isEmpty(errorCode) && !StringUtil.equals(errorCode,"BAC001")){
@@ -148,6 +156,10 @@ public class YbApi {
             if(Objects.equals(state,"FAILURE")){
                 lm.addEnd("连接异常："+yopResponse.getError().getCode()+"___"+yopResponse.getError().getMessage());
                 return ResultVO.error(yopResponse.getError().getMessage());
+            }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
             }
             BalanceCashQueryVO balanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), BalanceCashQueryVO.class);
             if(!StringUtil.isEmpty(balanceCashQueryVO.getErrorCode()) && !StringUtil.equals(balanceCashQueryVO.getErrorCode(),"BAC001")){
@@ -202,6 +214,14 @@ public class YbApi {
             String state = yopResponse.getState();
             if(Objects.equals(state,"FAILURE")){
                 return ResultVO.error(yopResponse.getError().getMessage());
+            }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
+            }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
             }
             UserBalanceCashQueryVO userBalanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashQueryVO.class);
             String errorCode = userBalanceCashQueryVO.getErrorCode();
@@ -259,6 +279,10 @@ public class YbApi {
             String state = yopResponse.getState();
             if(Objects.equals(state,"FAILURE")){
                 return ResultVO.error(yopResponse.getError().getMessage());
+            }
+            if(yopResponse.getResult()==null){
+                lm.addEnd("未查询到出款数据");
+                return ResultVO.error("未查询到出款数据");
             }
             UserBalanceCashQueryVO userBalanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashQueryVO.class);
             String errorCode = userBalanceCashQueryVO.getErrorCode();
