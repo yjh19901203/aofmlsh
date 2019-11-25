@@ -36,8 +36,8 @@ log:
 
 #jobcenter
 jobcenter:
-  name: mlshsettlement
-  port: 10841
+  name: mlshapi
+  port: 10855
   serverHost: jobcenter.55tuan.me
   serverPort: 9001
   zkAddress: zk1-1.55tuan.me:2181,zk1-2.55tuan.me:2181,zk1-3.55tuan.me:2181
