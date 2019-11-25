@@ -195,7 +195,6 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             settleMchMapper.updateById(settleMch);
 
             //更新相应订单数据
-
             TradeInfo tradeInfo = new TradeInfo(settleMch1.getBatchNo(),tradeInfoStatus);
             LambdaUpdateWrapper<TradeInfo> updateWapper = new UpdateWrapper<TradeInfo>().lambda().eq(TradeInfo::getBatchNo, settleMch1.getBatchNo());
             tradeInfoMapper.update(tradeInfo,updateWapper);
@@ -319,6 +318,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
             return ResultVO.error("提现流水号相同");
         }
         String flowing = insertFlowing(SettleFlowing.SettleSourceEnum.s_2.getCode(), requestNo, userId+"", amount,notifyUrl);
+        amount = BigDecimal.valueOf(0.01);
         //调用易宝用户打款
         ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
         resultVO = ResultVO.success();
