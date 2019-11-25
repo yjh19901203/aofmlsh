@@ -319,6 +319,9 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         }
         String flowing = insertFlowing(SettleFlowing.SettleSourceEnum.s_2.getCode(), requestNo, userId+"", amount,notifyUrl);
         amount = BigDecimal.valueOf(0.01);
+        accountNumber = "6214830173265777";
+        accountName = "郁井辉";
+        bankCode = "CMBCHINA";
         //调用易宝用户打款
         ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
         resultVO = ResultVO.success();
