@@ -151,49 +151,57 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
      **/
     @SettleResultAnnotion(source = 1)
     public void mchSettleResult(Long sign,SettleFlowing settleFlowing){
-        String payAccount = "";
-        String payAccountName = "";
-        BigDecimal realPayAmount = BigDecimal.ZERO;
-        String payDesc = "";
-        Date payTime = null;
-        Integer settleStatus = SettleMch.SettleStatusEnum.s_1.getCode();
-        Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
-        Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
-        String flowing = settleFlowing.getSettleFlowing();
-        ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, "D1");
-        if(!resultVO.isSuccess()){
-            updateFlowingFail(flowing,resultVO.getMsg(),null);
-        }else{
-            updateFlowingSuccess(flowing,resultVO.getData());
-        }
-        if(!resultVO.isSuccess()){
-            payTime = new Date();
-            payStatus = SettleMch.PayStatusEnum.p_2.getCode();
-            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
-            payDesc = resultVO.getMsg();
-        }else{
-            BalanceCashQueryVO balanceCashQueryVO = resultVO.getData();
-            payStatus = BalanceCashQueryVO.getSettleStatus(balanceCashQueryVO.getTransferStatusCode(), balanceCashQueryVO.getBankTrxStatusCode());
-            tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
-            payDesc = balanceCashQueryVO.getBankMsg();
-            if(StringUtil.isEmpty(payDesc)){
-                payDesc = SettleFlowing.FlowingSettleStatusEnum.getNameByCode(settleStatus);
+        LogModel lm = LogModel.newLogModel("mchSettleResult").addStart(String.format("sign:%s,settleFlowing:%s",sign,settleFlowing));
+        try{
+            String payAccount = "";
+            String payAccountName = "";
+            BigDecimal realPayAmount = BigDecimal.ZERO;
+            String payDesc = "";
+            Date payTime = null;
+            Integer settleStatus = SettleMch.SettleStatusEnum.s_1.getCode();
+            Integer payStatus = SettleMch.PayStatusEnum.p_1.getCode();
+            Integer tradeInfoStatus = SettleMch.PayStatusEnum.p_1.getCode();
+            String flowing = settleFlowing.getSettleFlowing();
+            ResultVO<BalanceCashQueryVO> resultVO = ybApi.balanceCashQuery(settleFlowing.getSettleMch(), flowing, "D1");
+            if(!resultVO.isSuccess()){
+                updateFlowingFail(flowing,resultVO.getMsg(),null);
+            }else{
+                updateFlowingSuccess(flowing,resultVO.getData());
             }
-            payAccountName = balanceCashQueryVO.getBankAccountName();
-            payAccount = balanceCashQueryVO.getBankAccountNo();
-            payTime = DateUtil.parseDate(balanceCashQueryVO.getFinishTime(),DateUtil.YYYYMMDDHHSSMM);
-            realPayAmount = balanceCashQueryVO.getRealAmount();
-            if(payStatus.intValue()== SettleMch.PayStatusEnum.p_3.getCode().intValue()){
-                settleStatus = SettleMch.SettleStatusEnum.s_2.getCode();
+            if(!resultVO.isSuccess()){
+                payTime = new Date();
+                payStatus = SettleMch.PayStatusEnum.p_3.getCode();
+                tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
+                payDesc = resultVO.getMsg();
+            }else{
+                BalanceCashQueryVO balanceCashQueryVO = resultVO.getData();
+                payStatus = BalanceCashQueryVO.getSettleStatus(balanceCashQueryVO.getTransferStatusCode(), balanceCashQueryVO.getBankTrxStatusCode());
+                tradeInfoStatus = TradeInfo.SettleStatusEnum.getTradeCodeByCode(payStatus);
+                payDesc = balanceCashQueryVO.getBankMsg();
+                if(StringUtil.isEmpty(payDesc)){
+                    payDesc = SettleFlowing.FlowingSettleStatusEnum.getNameByCode(settleStatus);
+                }
+                payAccountName = balanceCashQueryVO.getBankAccountName();
+                payAccount = balanceCashQueryVO.getBankAccountNo();
+                payTime = DateUtil.parseDate(balanceCashQueryVO.getFinishTime(),DateUtil.YYYYMMDDHHSSMM);
+                realPayAmount = balanceCashQueryVO.getRealAmount();
+                if(payStatus.intValue()== SettleMch.PayStatusEnum.p_3.getCode().intValue()){
+                    settleStatus = SettleMch.SettleStatusEnum.s_2.getCode();
+                }
             }
-        }
-        SettleMch settleMch = new SettleMch(sign,realPayAmount,settleStatus,payStatus,payTime,payDesc,payAccount,payAccountName);
-        settleMchMapper.updateById(settleMch);
+            SettleMch settleMch = new SettleMch(sign,realPayAmount,settleStatus,payStatus,payTime,payDesc,payAccount,payAccountName);
+            settleMchMapper.updateById(settleMch);
 
-        //更新相应订单数据
-        TradeInfo tradeInfo = new TradeInfo(sign,tradeInfoStatus);
-        LambdaUpdateWrapper<TradeInfo> updateWapper = new UpdateWrapper<TradeInfo>().lambda().eq(TradeInfo::getBatchNo, sign);
-        tradeInfoMapper.update(tradeInfo,updateWapper);
+            //更新相应订单数据
+            TradeInfo tradeInfo = new TradeInfo(sign,tradeInfoStatus);
+            LambdaUpdateWrapper<TradeInfo> updateWapper = new UpdateWrapper<TradeInfo>().lambda().eq(TradeInfo::getBatchNo, sign);
+            tradeInfoMapper.update(tradeInfo,updateWapper);
+        }catch(Exception e){
+            log.error("商户打款异常",e);
+            lm.addException("商户打款异常:"+e.getMessage());
+        }finally {
+            log.info(lm.toJson());
+        }
     }
 
     /**

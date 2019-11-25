@@ -48,7 +48,7 @@ public class SettleMch implements Serializable {
     }
 
     public enum PayStatusEnum{
-        p_1(1,"支付中"),p_2(2,"支付失败"),p_3(3,"支付成功"),p_0(0,"未支付");
+        p_1(1,"支付中"),p_2(2,"支付成功"),p_3(3,"支付失败"),p_0(0,"未支付");
 
         private Integer code;
         private String name;

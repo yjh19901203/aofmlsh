@@ -146,6 +146,7 @@ public class YbApi {
             lm.addRep(yopResponse.toString());
             String state = yopResponse.getState();
             if(Objects.equals(state,"FAILURE")){
+                lm.addEnd("连接异常："+yopResponse.getError().getCode()+"___"+yopResponse.getError().getMessage());
                 return ResultVO.error(yopResponse.getError().getMessage());
             }
             BalanceCashQueryVO balanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), BalanceCashQueryVO.class);
