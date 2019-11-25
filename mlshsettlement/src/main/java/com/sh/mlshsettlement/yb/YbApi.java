@@ -220,10 +220,6 @@ public class YbApi {
                 lm.addEnd("未查询到出款数据");
                 return ResultVO.error("未查询到出款数据");
             }
-            if(yopResponse.getResult()==null){
-                lm.addEnd("未查询到出款数据");
-                return ResultVO.error("未查询到出款数据");
-            }
             UserBalanceCashQueryVO userBalanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashQueryVO.class);
             lm.addData("userBalanceCashQueryVO",userBalanceCashQueryVO);
             String errorCode = userBalanceCashQueryVO.getErrorCode();
