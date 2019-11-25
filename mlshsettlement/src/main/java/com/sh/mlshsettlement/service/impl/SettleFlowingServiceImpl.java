@@ -211,16 +211,23 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
      **/
     @SettleResultAnnotion(source = 2)
     public void userSettleResult(Long sign,SettleFlowing settleFlowing){
-
-        String flowing = settleFlowing.getSettleFlowing();
-        ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
-        if(resultVO.isFail()){
-            updateFlowingFail(flowing,resultVO.getMsg(),null);
-        }else if(resultVO.isSuccess()){
-            updateUserFlowingSuccess(flowing,resultVO.getData());
+        LogModel lm = LogModel.newLogModel("userSettleResult").addStart(String.format("sign:%s,settleFlowing:%s", sign, settleFlowing));
+        try{
+            String flowing = settleFlowing.getSettleFlowing();
+            ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
+            if(resultVO.isFail()){
+                updateFlowingFail(flowing,resultVO.getMsg(),null);
+            }else if(resultVO.isSuccess()){
+                updateUserFlowingSuccess(flowing,resultVO.getData());
+            }
+            //通知出款发起方
+            notifyUserSettle(settleFlowing.getNotifyUrl(),sign);
+        }catch(Exception e){
+            log.error("调用商户查询异常",e);
+            lm.addException("调用商户查询异常:"+e.getMessage());
+        }finally {
+            log.info(lm.toJson());
         }
-        //通知出款发起方
-        notifyUserSettle(settleFlowing.getNotifyUrl(),sign);
 
 //        UserBalanceCashQueryVO userBalanceCashQueryVO = resultVO.getData();
 //        if (userBalanceCashQueryVO.getTotalCount()==0) {
