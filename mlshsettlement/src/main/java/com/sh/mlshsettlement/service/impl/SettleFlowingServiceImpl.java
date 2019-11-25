@@ -214,7 +214,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         LogModel lm = LogModel.newLogModel("userSettleResult").addStart(String.format("sign:%s,settleFlowing:%s", sign, settleFlowing));
         try{
             String flowing = settleFlowing.getSettleFlowing();
-            ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(settleFlowing.getSettleSign() + "", settleFlowing.getSettleSign() + "", "WTJS");
+            ResultVO<UserBalanceCashQueryVO> resultVO = ybApi.userBalanceCashQuery(flowing + "", flowing + "", "WTJS");
             if(resultVO.isFail()){
                 updateFlowingFail(flowing,resultVO.getMsg(),null);
             }else if(resultVO.isSuccess()){
