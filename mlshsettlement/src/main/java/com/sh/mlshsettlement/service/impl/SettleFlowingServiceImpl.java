@@ -286,7 +286,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
                 .set(SettleFlowing::getSettleDesc,bankMsg)
                 .set(SettleFlowing::getSettleAccountName,userBalanceCashQueryListVO.getAccountName())
                 .set(SettleFlowing::getSettleAccountNo,userBalanceCashQueryListVO.getAccountNumber())
-                .set(SettleFlowing::getPayTime,DateUtil.parseLocalDateTime(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM2))
+                .set(SettleFlowing::getPayTime,DateUtil.parseLocalDateTime(userBalanceCashQueryListVO.getFinishDate(),DateUtil.YYYYMMDDHHSSMM))
                 .set(SettleFlowing::getRealPayAmount,userBalanceCashQueryListVO.getSuccessAmount());
         update(updateWrapper);
     }

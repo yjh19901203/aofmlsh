@@ -213,6 +213,7 @@ public class YbApi {
             lm.addRep(yopResponse.toString());
             String state = yopResponse.getState();
             if(Objects.equals(state,"FAILURE")){
+                lm.addEnd("查询连接失败");
                 return ResultVO.error(yopResponse.getError().getMessage());
             }
             if(yopResponse.getResult()==null){
@@ -224,6 +225,7 @@ public class YbApi {
                 return ResultVO.error("未查询到出款数据");
             }
             UserBalanceCashQueryVO userBalanceCashQueryVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashQueryVO.class);
+            lm.addData("userBalanceCashQueryVO",userBalanceCashQueryVO);
             String errorCode = userBalanceCashQueryVO.getErrorCode();
             if(!StringUtil.isEmpty(errorCode) && !StringUtil.equals(errorCode,"BAC001")){
                 lm.addEnd("系统打款状态失败："+errorCode+"_"+userBalanceCashQueryVO.getErrorMsg());
