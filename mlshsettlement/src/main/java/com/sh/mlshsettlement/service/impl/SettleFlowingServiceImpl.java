@@ -189,12 +189,15 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
                     settleStatus = SettleMch.SettleStatusEnum.s_2.getCode();
                 }
             }
+
+            SettleMch settleMch1 = settleMchMapper.selectById(sign);
             SettleMch settleMch = new SettleMch(sign,realPayAmount,settleStatus,payStatus,payTime,payDesc,payAccount,payAccountName);
             settleMchMapper.updateById(settleMch);
 
             //更新相应订单数据
-            TradeInfo tradeInfo = new TradeInfo(sign,tradeInfoStatus);
-            LambdaUpdateWrapper<TradeInfo> updateWapper = new UpdateWrapper<TradeInfo>().lambda().eq(TradeInfo::getBatchNo, sign);
+
+            TradeInfo tradeInfo = new TradeInfo(settleMch1.getBatchNo(),tradeInfoStatus);
+            LambdaUpdateWrapper<TradeInfo> updateWapper = new UpdateWrapper<TradeInfo>().lambda().eq(TradeInfo::getBatchNo, settleMch1.getBatchNo());
             tradeInfoMapper.update(tradeInfo,updateWapper);
         }catch(Exception e){
             log.error("商户打款异常",e);
