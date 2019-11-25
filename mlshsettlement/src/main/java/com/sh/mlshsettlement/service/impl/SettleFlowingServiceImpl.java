@@ -332,7 +332,7 @@ public class SettleFlowingServiceImpl extends ServiceImpl<SettleFlowingMapper, S
         //调用易宝用户打款
         ResultVO resultVO = ybApi.userDeposit(flowing, accountName, amount,accountNumber,bankCode,bankBranchName,provinceCode,cityCode);
         resultVO = ResultVO.success();
-        if(!resultVO.isSuccess()){
+        if(resultVO.isFail()){
             lm.addEnd("调用易宝用户提现接口失败："+resultVO.getMsg());
             updateFlowingFail(flowing,resultVO.getMsg(), SettleFlowing.NotifyStatusEnum.s_1.getCode());
             ThreadPoolUtil.execute(new Runnable() {

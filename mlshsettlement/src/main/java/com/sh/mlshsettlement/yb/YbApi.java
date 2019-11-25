@@ -120,7 +120,11 @@ public class YbApi {
             UserBalanceCashVO userBalanceCashVO = JSONUtil.parseObject(yopResponse.getStringResult(), UserBalanceCashVO.class);
             String errorCode = userBalanceCashVO.getErrorCode();
             if(!StringUtil.isEmpty(errorCode) && !StringUtil.equals(errorCode,"BAC001")){
-                lm.addEnd("易宝用户打款状态失败："+errorCode+"_"+userBalanceCashVO.getErrorMsg());
+                lm.addEnd("系统用户打款状态失败："+userBalanceCashVO.getErrorCode()+"_"+userBalanceCashVO.getErrorMsg());
+                if(StringUtil.equals(userBalanceCashVO.getErrorCode(),"BAC409999")){
+                    lm.addException("系统异常："+userBalanceCashVO.getErrorCode()+"____"+userBalanceCashVO.getErrorMsg());
+                    return ResultVO.systemError(userBalanceCashVO.getErrorMsg());
+                }
                 return ResultVO.error(userBalanceCashVO.getErrorMsg());
             }
             //判断易宝打款状态
@@ -133,7 +137,7 @@ public class YbApi {
         }catch(Exception e){
             lm.addException(e.getMessage());
             log.error("请求易宝用户提现异常",e);
-            return ResultVO.error("请求易宝用户提现异常");
+            return ResultVO.exceptionError("请求易宝提现异常");
         }finally {
             log.info(lm.toJson());
         }
