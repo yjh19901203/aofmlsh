@@ -12,6 +12,8 @@ import java.io.Serializable;
 public class ResultVO<T> implements Serializable {
     private static final int success = 1;
     private static final int fail = -1;
+    private static final int system_error = 9999;
+    private static final int exception = -9999;
     private static final int processing = 0;
 
     @ApiModelProperty(value = "返回码，1：成功  -1：失败")
@@ -37,6 +39,18 @@ public class ResultVO<T> implements Serializable {
 
     public static ResultVO error(String failMsg){
         return new ResultVO(fail,failMsg,null);
+    }
+
+    public static ResultVO error(int code,String failMsg){
+        return new ResultVO(code,failMsg,null);
+    }
+
+    public static ResultVO systemError(String failMsg){
+        return new ResultVO(system_error,failMsg,null);
+    }
+
+    public static ResultVO exceptionError(String failMsg){
+        return new ResultVO(exception,failMsg,null);
     }
 
     public static ResultVO processing(String msg){

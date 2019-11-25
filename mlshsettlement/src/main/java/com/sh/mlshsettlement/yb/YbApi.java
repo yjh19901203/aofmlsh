@@ -67,13 +67,17 @@ public class YbApi {
             BalanceCashVO balanceCashVO = JSONUtil.parseObject(yopResponse.getStringResult(), BalanceCashVO.class);
             if(!StringUtil.isEmpty(balanceCashVO.getErrorCode()) && !StringUtil.equals(balanceCashVO.getErrorCode(),"BAC001")){
                 lm.addEnd("系统打款状态失败："+balanceCashVO.getErrorCode()+"_"+balanceCashVO.getErrorMsg());
+                if(StringUtil.equals(balanceCashVO.getErrorCode(),"BAC409999")){
+                    lm.addException("系统异常："+balanceCashVO.getErrorCode()+"____"+balanceCashVO.getErrorMsg());
+                    return ResultVO.systemError(balanceCashVO.getErrorMsg());
+                }
                 return ResultVO.error(balanceCashVO.getErrorMsg());
             }
             return ResultVO.success();
         }catch(Exception e){
             lm.addException(e.getMessage());
             log.error("请求易宝提现异常",e);
-            return ResultVO.error("请求易宝提现异常");
+            return ResultVO.exceptionError("请求易宝提现异常");
         }finally {
             log.info(lm.toJson());
         }
