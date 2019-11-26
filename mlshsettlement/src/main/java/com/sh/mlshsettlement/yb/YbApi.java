@@ -52,7 +52,7 @@ public class YbApi {
                 cashType = "D1";
             }
             String payAmount = new DecimalFormat("0.00").format(amount);
-            YopRequest request = new YopRequest(ybConfig.getAppkey(), ybConfig.getShprivatekey());
+            YopRequest request = new YopRequest(ybConfig.getMch_appkey(), ybConfig.getMch_privatekey());
             request.addParam("customerNumber",merchantId);
             request.addParam("amount",payAmount);
             request.addParam("orderId",orderId);
@@ -149,7 +149,7 @@ public class YbApi {
     public ResultVO<BalanceCashQueryVO> balanceCashQuery(String merchantId, String orderId, String cashType){
         LogModel lm = LogModel.newLogModel("balanceCashQuery").addStart(String.format("merchantId:%s,orderId:%s,cashType:%s", merchantId, orderId, cashType));
         try{
-            YopRequest request = new YopRequest(ybConfig.getAppkey(), ybConfig.getShprivatekey());
+            YopRequest request = new YopRequest(ybConfig.getMch_appkey(), ybConfig.getMch_privatekey());
             request.addParam("customerNumber",merchantId);
             request.addParam("orderId",orderId);
             request.addParam("cashType",cashType);

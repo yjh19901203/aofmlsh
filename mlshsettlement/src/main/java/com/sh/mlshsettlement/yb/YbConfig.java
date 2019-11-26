@@ -21,5 +21,18 @@ public class YbConfig {
      * platecode
      */
     private String plateCode;
+    /**
+     * 闪惠私钥
+     **/
+    private String mch_privatekey;
+
+    /**
+     * appkey
+     */
+    private String mch_appkey;
+    /**
+     * platecode
+     */
+    private String mch_plateCode;
 
 }
